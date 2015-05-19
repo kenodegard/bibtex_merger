@@ -1,0 +1,121 @@
+
+@article{dimaio2006,
+	Abstract = {One particularly time-consuming step in protein crystallography is interpreting the electron density map; that is, fitting a complete molecular model of the protein into a 3D image of the protein produced by the crystallographic process. In poor-quality electron density maps, the interpretation may require a significant amount of a crystallographer's time. Our work investigates automating the time-consuming initial backbone trace in poor-quality density maps. We describe ACMI (Automatic Crystallographic Map Interpreter), which uses a probabilistic model known as a Markov field to represent the protein. Residues of the protein are modeled as nodes in a graph, while edges model pairwise structural interactions. Modeling the protein in this manner allows the model to be flexible, considering an almost infinite number of possible conformations, while rejecting any that are physically impossible. Using an efficient algorithm for approximate inference--belief propagation--allows the most probable trace of the protein's backbone through the density map to be determined. We test ACMI on a set of ten protein density maps (at 2.5 to 4.0 A resolution), and compare our results to alternative approaches. At these resolutions, ACMI offers a more accurate backbone trace than current approaches.},
+	Author = {DiMaio, Frank and Shavlik, Jude and Phillips, George N},
+	Doi = {10.1093/bioinformatics/btl252},
+	Journal = {Bioinformatics},
+	Journal-Full = {Bioinformatics (Oxford, England)},
+	Mesh = {Algorithms; Amino Acid Sequence; Computer Simulation; Crystallography, X-Ray; Data Interpretation, Statistical; Electron Probe Microanalysis; Models, Chemical; Models, Molecular; Models, Statistical; Molecular Sequence Data; Proteins; Sequence Analysis, Protein},
+	Month = {Jul},
+	Number = {14},
+	Pages = {e81-9},
+	Pmid = {16873525},
+	Pst = {ppublish},
+	Title = {A probabilistic approach to protein backbone tracing in electron density maps},
+	Volume = {22},
+	Year = {2006},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1093/bioinformatics/btl252}}
+
+@article{doucet2000sequential,
+  title={On sequential Monte Carlo sampling methods for Bayesian filtering},
+  author={Doucet, Arnaud and Godsill, Simon and Andrieu, Christophe},
+  journal={Statistics and computing},
+  volume={10},
+  number={3},
+  pages={197--208},
+  year={2000},
+  publisher={Springer}
+}
+
+@inproceedings{soni2010guiding,
+  title={Guiding belief propagation using domain knowledge for protein-structure determination},
+  author={Soni, Ameet and Bingman, Craig and Shavlik, Jude},
+  booktitle={Proceedings of the First ACM International Conference on Bioinformatics and Computational Biology},
+  pages={285--294},
+  year={2010},
+  organization={ACM}
+}
+
+
+@article{dimaio2009,
+	Abstract = {Several methods for automatically constructing a protein model from an electron-density map require searching for many small protein-fragment templates in the density. We propose to use the spherical-harmonic decomposition of the template and the maps density to speed this matching. Unlike other template-matching approaches, this allows us to eliminate large portions of the map unlikely to match any templates. We train several first-pass filters for this elimination task. We show our new template-matching method improves accuracy and reduces running time, compared to previous approaches. Finally, we extend our method to produce a structural-homology detection algorithm using electron density.},
+	Author = {DiMaio, Frank P and Soni, Ameet B and Phillips, Jr, George N and Shavlik, Jude W},
+	Date-Added = {2013-02-16 23:10:02 +0000},
+	Date-Modified = {2013-02-16 23:10:02 +0000},
+	Journal = {Int J Data Min Bioinform},
+	Journal-Full = {International journal of data mining and bioinformatics},
+	Mesh = {Algorithms; Crystallography, X-Ray; Databases, Protein; Models, Molecular; Probability; Protein Conformation; Proteins; Software},
+	Number = {2},
+	Pages = {205-27},
+	Pmc = {PMC2696052},
+	Pmid = {19517990},
+	Pst = {ppublish},
+	Title = {Spherical-harmonic decomposition for molecular recognition in electron-density maps},
+	Volume = {3},
+	Year = {2009}}
+
+
+@incollection{dimaio2009machine,
+	Author = {Dimaio, Frank and Soni, Ameet and Shavlik, Jude},
+	Booktitle = {Introduction to Machine Learning and Bioinformatics},
+    Editor = {S. Mitra and S. Datta and T. Perkins and G. Michailidis},
+	Pages = {237--276},
+	Publisher = {Chapman \& Hall / CRC Press},
+	Title = {Machine Learning in Structural Biology: Interpreting 3D Protein Images},
+	Year = {2008}}
+
+
+@article{dimaio2007,
+	Abstract = {MOTIVATION: One bottleneck in high-throughput protein crystallography is interpreting an electron-density map, that is, fitting a molecular model to the 3D picture crystallography produces. Previously, we developed ACMI (Automatic Crystallographic Map Interpreter), an algorithm that uses a probabilistic model to infer an accurate protein backbone layout. Here, we use a sampling method known as particle filtering to produce a set of all-atom protein models. We use the output of ACMI to guide the particle filter's sampling, producing an accurate, physically feasible set of structures.
+RESULTS: We test our algorithm on 10 poor-quality experimental density maps. We show that particle filtering produces accurate all-atom models, resulting in fewer chains, lower sidechain RMS error and reduced R factor, compared to simply placing the best-matching sidechains on ACMI's trace. We show that our approach produces a more accurate model than three leading methods--Textal, Resolve and ARP/WARP--in terms of main chain completeness, sidechain identification and crystallographic R factor.
+AVAILABILITY: Source code and experimental density maps available at http://ftp.cs.wisc.edu/machine-learning/shavlik-group/programs/acmi/},
+	Author = {DiMaio, Frank and Kondrashov, Dmitry A and Bitto, Eduard and Soni, Ameet and Bingman, Craig A and Phillips, Jr, George N and Shavlik, Jude W},
+	Date-Added = {2013-02-16 23:13:30 +0000},
+	Date-Modified = {2013-02-16 23:13:30 +0000},
+	Doi = {10.1093/bioinformatics/btm480},
+	Journal = {Bioinformatics},
+	Journal-Full = {Bioinformatics (Oxford, England)},
+	Mesh = {Absorptiometry, Photon; Algorithms; Computer Simulation; Crystallography, X-Ray; Filtration; Models, Chemical; Models, Molecular; Models, Statistical; Particle Size; Protein Conformation; Proteins},
+	Month = {Nov},
+	Number = {21},
+	Pages = {2851-8},
+	Pmc = {PMC2567142},
+	Pmid = {17933855},
+	Pst = {ppublish},
+	Title = {Creating protein models from electron-density maps using particle-filtering methods},
+	Volume = {23},
+	Year = {2007},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1093/bioinformatics/btm480}}
+
+
+@inproceedings{dimaio2007improved,
+	Author = {DiMaio, Frank and Soni, Ameet and Phillips, George N and Shavlik, Jude W},
+	Booktitle = {IEEE International Conference on Bioinformatics and Biomedicine (BIBM)},
+	Date-Added = {2013-02-16 23:14:28 +0000},
+	Date-Modified = {2013-02-16 23:14:28 +0000},
+	Organization = {IEEE},
+	Pages = {258--265},
+	Title = {Improved methods for template-matching in electron-density maps using spherical harmonics},
+	Year = {2007}}
+
+
+@inproceedings{dimaio2006belief,
+	Author = {DiMaio, Frank and Shavlik, Jude},
+	Booktitle = {Sixth IEEE International Conference on Data Mining (ICDM)},
+	Date-Added = {2013-02-16 23:15:36 +0000},
+	Date-Modified = {2013-02-16 23:15:36 +0000},
+	Pages = {845--850},
+	Title = {Belief propagation in large, highly connected graphs for 3D part-based object recognition},
+	Year = {2006}}
+
+@techreport{dimaio2006improving-the-efficiency-of-belief-propagation,
+	Author = {F. DiMaio and J. Shavlik},
+	Date-Added = {2013-02-16 23:17:09 +0000},
+	Date-Modified = {2013-02-16 23:19:16 +0000},
+	Institution = {Department of Computer Sciences, University of Wisconsin},
+	Number = {06-1},
+	Title = {Improving the efficiency of belief propagation in large, highly connected graphs},
+	Type = {Machine Learning Research Group Working Paper},
+	Year = {2006}}
+
+

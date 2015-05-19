@@ -1,0 +1,59 @@
+=========================================
+An Algorithm for a LaTeX’s BibTeX Cleanup
+=========================================
+May 4, 2015
+Ken Odegard (kho1@rice.edu)
+
+--------------
+Code structure
+==============
+
+code/
+	cleanup.py			the core script that runs everything as necessary
+	fminunc/			the support code (MATLAB) for the fminunc (logistic regression ) algorithm
+	glmfit/				the support code (MATLAB) for the glmfit (generalized linear model) algorithm
+	bibtexparser/		the support code (python) for parsing the bibtex entries,
+						this is an updated adaptation of
+						https://pypi.python.org/pypi/bibtexparser/0.6.0
+data/
+	0_original/			the original (unaltered) datasets
+	1_prelearning/		the outputs from the python script used by fminunc to learn
+						a prediction model
+
+-------------------
+System Requirements
+===================
+
+The code requires:
+	python 2.6 or better
+		numpy 1.9.2 or better
+		Levenshtein 0.12.0 or better
+		fuzzy 1.0 or better
+		gmpy2 2.0.5 or better
+	MATLAB 2014a or better
+		Bioinformatics Toolbox
+		Neural Network Toolbox
+		Optimization Toolbox
+		Parallel Computing Toolbox
+		Statistics and Machine Learning Toolbox
+
+------------------
+Running cleanup.py
+==================
+
+1. First navigate into the code/ directory.
+2. python cleanup.py
+
+Look into the __init__() method to toggle flags for the various functions. These flags are also explained in the code.
+
+There are 3 ways to run the code and the corresponding value that must be
+set for flag self.doLearning:
+	1. (self.learning_remakeData)	Building the dataset for the learning model training
+	2. (self.learning_modeling)		Recreating the learning models based on pre-existing dataset
+									Note that this step requires there to be datasets in the 1_prelearning directory
+	3. (self.learning_off)			Detect duplicates using a pre-existing prediction model
+									Note that this step requires theta values to be set in the self.theta value
+
+There are 2 available learning models that can be toggled via the self.learningModel flag:
+	1. 'fminunc'
+	2. 'glmfit'
