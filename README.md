@@ -19,7 +19,44 @@ logistic regression learning model is trained to determine a classification
 model. Note that the solution comes prepackaged with a standard model but has
 the option for retraining with a custom dataset.
 
-# Installing
-
 # System Requirements
+The code requires:
+	python 2.6 or better
+		numpy 1.9.2 or better
+		Levenshtein 0.12.0 or better
+		fuzzy 1.0 or better
+		gmpy2 2.0.5 or better
+	MATLAB 2014a or better
+		Bioinformatics Toolbox
+		Neural Network Toolbox
+		Optimization Toolbox
+		Parallel Computing Toolbox
+		Statistics and Machine Learning Toolbox
 
+# Running merger.py
+
+1. First navigate into the src/ directory.
+2. python merger.py
+
+Look into the __init__() method to toggle flags for the various functions.
+These flags are also explained in the code.
+
+There are 3 ways to run the code and the corresponding value that must be
+set for flag self.doLearning:
+
+1. (self.learning_remakeData)	Building the dataset for the learning model
+								training.
+2. (self.learning_modeling)		Recreating the learning models based on
+								preexisting dataset. Note that this step
+								requires there to be datasets in the
+								1_prelearning directory.
+3. (self.learning_off)			Detect duplicates using a preexisting
+								prediction model. Note that this step
+								requires theta values to be set in the
+								self.theta value.
+
+There are 2 available learning models that can be toggled via the
+self.learningModel flag:
+
+1. 'fminunc'
+2. 'glmfit'
