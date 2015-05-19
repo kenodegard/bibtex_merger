@@ -38,25 +38,25 @@ The code requires:
 1. First navigate into the src/ directory.
 2. python merger.py
 
-Look into the __init__() method to toggle flags for the various functions.
+Look into the ```__init__()``` method to toggle flags for the various functions.
 These flags are also explained in the code.
 
 There are 3 ways to run the code and the corresponding value that must be
 set for flag self.doLearning:
 
-1. (self.learning_remakeData)	Building the dataset for the learning model
-								training.
-2. (self.learning_modeling)		Recreating the learning models based on
-								preexisting dataset. Note that this step
-								requires there to be datasets in the
-								1_prelearning directory.
-3. (self.learning_off)			Detect duplicates using a preexisting
-								prediction model. Note that this step
-								requires theta values to be set in the
-								self.theta value.
+1. ```self.learning_remakeData```	Building the dataset for the learning model
+									training.
+2. ```self.learning_modeling```		Recreating the learning models based on
+									preexisting dataset. Note that this step
+									requires there to be datasets in the
+									1_prelearning directory.
+3. ```self.learning_off```			Detect duplicates using a preexisting
+									prediction model. Note that this step
+									requires theta values to be set in the
+									self.theta value.
 
 There are 2 available learning models that can be toggled via the
 self.learningModel flag:
 
-1. 'fminunc'
-2. 'glmfit'
+1. ```'fminunc'```
+2. ```'glmfit'```
