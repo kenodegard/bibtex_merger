@@ -1,4 +1,4 @@
-https://badge.fury.io/hooks/github
+[![GitHub version](https://badge.fury.io/gh/njalerikson%2Fbibtex_merger.svg)](http://badge.fury.io/gh/njalerikson%2Fbibtex_merger)
 [![Build Status](https://travis-ci.org/njalerikson/bibtex_merger.svg)](https://travis-ci.org/njalerikson/bibtex_merger)
 [![Coverage Status](https://coveralls.io/repos/njalerikson/bibtex_merger/badge.svg)](https://coveralls.io/r/njalerikson/bibtex_merger)
 
