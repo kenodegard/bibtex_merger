@@ -1,37 +1,56 @@
-import bibtex_cleanup_parser.bibtexparser as bp
+import bibtexparser as bp
 import Levenshtein as le
 import fuzzy as fz
-import gmpy2
+import gmpy2 as ch
 
-import re, csv, os, os.path, threading, numpy, sys
-
+import re, csv, os, threading, numpy, logging
+from sys import argv
 from datetime import *
 from collections import OrderedDict
+from sklearn import linear_model
+from sklearn.cross_validation import train_test_split
+import ConfigParser
 
-class BibTeX_Cleanup:
-	def __init__(self, numFiles=-1):
+from errors import *
+from core import BaseHandlers
+
+class BibTeX_Merger(BaseHandlers):
+	def __init__(self,	numFiles = -1,
+						importDir = '.',
+						verbose = False,
+						shallowDeepCompDiv = 3.4,
+						summedPercentErrorDiv = [0.4, 1.0],
+						learningModel = 'fminunc',
+						doLearning = 'remakeModel'):
 		self.initConstants()
 
-		self.verbose = False
 		# Optionally passed flag from command line that specifies how many files to use
 		# If set to -1 (default) then all files in the data/0_original/ directory will be used
 		self.numFiles = numFiles
 
+		self.importDir = importDir
+
+		# Verbose level that optionally prints more debugging code
+		self.verbose = verbose
+
 		# The manually decided breakpoints
-		self.shallowDeepCompDiv = 3.4
-		self.summedPercentErrorDiv = [0.4, 1.0]
+		self.shallowDeepCompDiv = shallowDeepCompDiv
+
+		# Lower and Upper breakpoints, everything lower than lower is assumed duplicate,
+		# everything greater than upper is assumed unique
+		self.summedPercentErrorDiv = summedPercentErrorDiv
 
 		# Sample fminunc theta
-		# self.theta = numpy.array([0.419, 1.036, -3.089, 0.025, -0.387, 0.943, 0.625, -3.326, -2.256, -1.798, 0.536, 1.777, 0.713, -0.026, -1.271, 0.215, 1.444, -12.533, -9.778, -2.590, -1.522])
+		# self.theta = numpy.array([0.419, 1.036, -3.089,  0.025, -0.387,  0.943,  0.625, -3.326, -2.256, -1.798, 0.536, 1.777,  0.713, -0.026, -1.271,  0.215,  1.444, -12.533, -9.778, -2.590, -1.522])
 		# Sample glmfit theta
 		self.theta = numpy.array([200.064, 1.192, -3.152, 33.034, 0.000, 0.985, 80.515, -3.527, -2.330, -1.916, 0.006, 1.863, 0.149, -0.108, -1.397, 87.715, 1.519, -13.372, -10.149, -2.609, -1.637])
 
 		# Learning model to use
 		# available options: fminunc | glmfit
-		self.learningModel = self.learningModels['fminunc']
+		self.learningModel = self.learningModels[learningModel]
 		# What to do in this instance of code execution
 		# available options: off | remakeData | remakeModel
-		self.doLearning = self.doLearnings['off']
+		self.doLearning = self.doLearnings[doLearning]
 
 		self.run()
 
@@ -49,13 +68,18 @@ class BibTeX_Cleanup:
 		return
 
 	def initConstants(self):
-		self.doLearnings = {	'off':	0,
-								'remakeData': 1,
-								'remakeModel': 2	}
-		self.learningModels = {	'fminunc':	0,
-								'glmfit':	1	}
+		self.logger = logging.getLogger(__name__)
 
-		self.id = "id"
+		self.doLearnings = ['off', 'remakeData', 'remakeModel']
+		self.doLearnings = dict((v,k) for k, v in enumerate(self.doLearnings))
+
+		self.learningModels = ['fminunc', 'glmfit']
+		self.learningModels = dict((v,k) for k, v in enumerate(self.learningModels))
+
+		self.parser = bp.bparser.BibTexParser()
+		self.parser.customization = self.__customizations__
+
+		self.id = "ID"
 		self.author = "author"
 		self.title = "title"
 		self.key = "key"
@@ -127,10 +151,11 @@ class BibTeX_Cleanup:
 		self.defaultKeysToDeepCompSorted = list(self.defaultKeysToDeepComp)
 		self.defaultKeysToDeepCompSorted.sort()
 		
-		self.originalDir      = "../data/0_original"
-		self.learningDir        = "../data/2_prelearning"
-		
-		self.originalDirFiles = [f for f in os.listdir(self.originalDir) if os.path.isfile(os.path.join(self.originalDir, f)) and os.path.splitext(f)[1] == ".bib"]
+		self.originalDir	= "../data/0_original"
+		self.learningDir	= "../data/2_prelearning"
+		self.installDir		= "~/.bibtex_merger"
+
+		self.configFile		= ".pref.cfg"
 
 		# self.reRemComment = re.compile(r'@COMMENT.*', re.IGNORECASE)
 		# self.reSplit=re.compile(r'(?=(?:' + '|'.join(["@" + et for et in self.entry_types.keys()]) + r'))',re.IGNORECASE)
@@ -140,7 +165,6 @@ class BibTeX_Cleanup:
 	def __customizations__(self, record):
 		# This is a formating specification of the BibtexParser package
 		# see https://bibtexparser.readthedocs.org/en/latest/bibtexparser.html#module-customization
-
 
 		# record = bp.customization.homogenize_latex_encoding(record)
 
@@ -156,16 +180,18 @@ class BibTeX_Cleanup:
 	def Import(self):
 		self.__title__("Import")
 
+		importDirFiles = [f for f in os.listdir(self.importDir) if os.path.isfile(os.path.join(self.importDir, f)) and os.path.splitext(f)[1] == ".bib"]
+
+		if len(importDirFiles) == 0:
+			raise UserError("No files were imported. Need at least one.")
+
 		# self.db = None
 		self.db = bp.bibdatabase.BibDatabase()
 
 		lengths = []
-		
-		parser = bp.bparser.BibTexParser()
-		parser.customization = self.__customizations__
 
 		self.tags = []
-		for filename in self.originalDirFiles[0:self.numFiles]:
+		for filename in importDirFiles[0:self.numFiles]:
 			self.__subtitle__("Importing '{}'".format(filename))
 
 			# pull out the filename w/o the extension
@@ -179,13 +205,14 @@ class BibTeX_Cleanup:
 
 			# try to import the specified file and parse
 			try:
-				with open("{}/{}".format(self.originalDir, filename)) as f:
-					temp_db = bp.load(f, parser=parser)
+				temp_db = self.__read__(self.originalDir, filename)
 
 				# append all ids in the entries dictionary with this file's unique tag
 				# s.t. all resulting ids are entirely unique w/r to all of the imported files
 				for i, e in enumerate(temp_db.entries):
-					assert self.id in e.keys(), self.__error__("'{}' key not in this entry ({})".format(self.id, e.keys()))
+					if self.id not in e.keys():
+						raise BibTeXParserError("'{}' key not in this entry ({})".format(self.id, e.keys()))
+
 					e[self.id] = "{}_{}".format(coreFN, e[self.id])
 
 				# append all ids in the string dictionary with this file's unique tag
@@ -198,7 +225,7 @@ class BibTeX_Cleanup:
 
 				self.tags += coreFN
 			except ValueError:
-				print self.__error__("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
+				self.logger.warning("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
 
 			if not self.db:
 				self.db = temp_db
@@ -241,9 +268,9 @@ class BibTeX_Cleanup:
 		print "by none split costs"
 		# print "(num entries)", len(self.db_fixed) + len(self.db_etal)
 		bc = len(self.db_fixed) + len(self.db_etal)
-		print "best-case:", bc, gmpy2.comb(bc, 2)
+		print "best-case:", bc, ch.comb(bc, 2)
 		wc = bc
-		print "worst-case:", wc, gmpy2.comb(wc, 2)
+		print "worst-case:", wc, ch.comb(wc, 2)
 
 		self.bagged = {}
 		for e in self.db_fixed:
@@ -278,9 +305,9 @@ class BibTeX_Cleanup:
 		print "by # authors split costs"
 		# print "(len: num entries)", [[i, len(e)] for i, e in self.bagged.iteritems()]
 		bc = min([len(e) for i, e in self.bagged.iteritems()])
-		print "best-case:", bc, gmpy2.comb(bc, 2)
+		print "best-case:", bc, ch.comb(bc, 2)
 		wc = max([len(e) for i, e in self.bagged.iteritems()])
-		print "worst-case:", wc, gmpy2.comb(wc, 2)
+		print "worst-case:", wc, ch.comb(wc, 2)
 
 		for groupID, groupValues in dict(self.bagged).iteritems():
 			alphaBagged = {}
@@ -315,26 +342,14 @@ class BibTeX_Cleanup:
 		print "by # authors and alpha key split costs"
 		# print "(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()]
 		bc = min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print "best-case:", bc, gmpy2.comb(bc, 2)
+		print "best-case:", bc, ch.comb(bc, 2)
 		wc = max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print "worst-case:", wc, gmpy2.comb(wc, 2)
+		print "worst-case:", wc, ch.comb(wc, 2)
 
 		return
 
 	def ShallowCompare(self):
 		self.__title__("Shallow Compare")
-
-		# r-Step
-
-		# String-based Considerations:
-		# 	Levenshtein Edit Distance
-		# 	Soundex Distance/Metaphone Coding Method/Guth Name-Matching
-		# 	Overlapping Name Units (i.e. name ordering is less significant)
-		# Name-specific Considerations:
-		# 	Name Suffixes and Prefixes
-		# 	Nicknames
-		# 	Name Initials
-		# 	Asian Names and Western Names (ignored)
 
 		lenSoundex = 10
 		soundex = fz.Soundex(lenSoundex)
@@ -349,7 +364,7 @@ class BibTeX_Cleanup:
 
 		self.shallowCompares = 0
 		self.deepCompares = 0
-		self.maxCompares = sum([sum([gmpy2.comb(len(e), 2) for a, e in d.iteritems() if len(e) > 1]) for i, d in self.bagged.iteritems()])
+		self.maxCompares = sum([sum([ch.comb(len(e), 2) for a, e in d.iteritems() if len(e) > 1]) for i, d in self.bagged.iteritems()])
 
 		for lenID, lenDic in self.bagged.iteritems():
 			numComp[lenID] = {}
@@ -532,8 +547,8 @@ class BibTeX_Cleanup:
 		print "defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted
 		print "# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted)
 
+		dataset = []
 		if self.doLearning == self.doLearnings['remakeData']:
-			new_learning = []
 			for e in self.learning:
 				new_e = [e[self.label]]
 				for k in self.defaultKeysToDeepCompSorted:
@@ -542,19 +557,39 @@ class BibTeX_Cleanup:
 					else:
 						new_e.append(-1)
 
-				new_learning.append(new_e)
+				dataset.append(new_e)
 
-			self.__write__(self.learningDir, "deepComparisonLearner.csv", examples=new_learning)
-
-		if self.learningModel == self.learningModels['fminunc']:
-			os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
-				"\"cd('fminunc');optimize_fminunc();exit();\""))
-		elif self.learningModel == self.learningModels['glmfit']:
-			os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
-				"\"cd('glmfit');optimize_glmfit();exit();\""))
+			self.__write__(self.learningDir, "deepComparisonLearner.csv", array=dataset)
 		else:
-			print "ERROR: bad model specified"
-			sys.exit()
+			dataset = self.__read__(self.learningDir, "deepComparisonLearner.csv")
+
+		dataset = numpy.array(dataset, dtype=numpy.float)
+		
+		X = numpy.c_[numpy.ones(len(dataset)), dataset[:,1:]]
+		y = dataset[:, 0]
+
+		X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=numpy.random.RandomState(2))
+
+		# model = linear_model.Lasso(alpha=0.0000001, max_iter=2000)
+		model = linear_model.LogisticRegression()
+		model.fit(X_train, y_train)
+
+		y_train_prediction = model.predict(X_train)
+		y_test_prediction = model.predict(X_test)
+
+		train_accuracy = float(numpy.mean(y_train_prediction == y_train) * 100)
+		test_accuracy  = float(numpy.mean(y_test_prediction  == y_test)  * 100)
+
+		# print model.coef_
+
+		# if self.learningModel == self.learningModels['fminunc']:
+		# 	os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
+		# 		"\"cd('fminunc');optimize_fminunc();exit();\""))
+		# elif self.learningModel == self.learningModels['glmfit']:
+		# 	os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
+		# 		"\"cd('glmfit');optimize_glmfit();exit();\""))
+		# else:
+		# 	raise ValueError("ERROR: bad model specified")
 		return
 
 	def PostProcessor(self):
@@ -562,84 +597,22 @@ class BibTeX_Cleanup:
 		
 		return
 
-	def __title__(self, title="sample title"):
-		width = 80
-		title = title.upper()
-
-		assert len(title) < (width - 4), self.__error__("len({}) = {}, must be < {}".format(title, len(title), width - 4))
-		
-		left  = ((width - len(title)) / 2) - 1
-		right = left + ((width - len(title)) % 2)
-		string = "\n" + ("#" * width) + "\n"
-		string += "#" + (" " * left) + title + (" " * right) + "#\n"
-		string += ("#" * width)
-
-		print string
-		
-		return
-
-	def __subtitle__(self, title="sample subtitle"):
-		width = 80
-		title = title.upper()
-
-		assert len(title) < (width - 6), self.__error__("len({}) = {}, must be < {}".format(title, len(title), width - 4))
-		
-		left  = ((width - len(title)) / 2) - 2
-		right = left + ((width - len(title)) % 2)
-		string = "||" + (" " * left) + title + (" " * right) + "||\n"
-		string += ("=" * width)
-
-		print string
-		
-		return
-
-	def __error__(self, text="sample error"):
-		return "ERROR: {}".format(text)
-
-	def __read__(self, directory=None, filename=None):
-		with open("{0}/{1}".format(directory, filename)) as f:
-			filecontent = csv.reader(f)
-
-			return [e for e in filecontent]
-
-		print "ERROR: read({0}/{1}) failed".format(directory, filename)
-		return
-
-	def __write__(self, directory=None, filename=None, examples=None, text=""):
-		if not os.path.exists(directory):
-			os.makedirs(directory)
-
-		try:
-			with open("{0}/{1}".format(directory, filename), 'wb') as f:
-				filecontent = csv.writer(f)
-
-				if type(examples) != None:
-					if type(examples) == type([]):
-						if len(examples) > 0:
-							if type(examples[0]) == type([]):
-								# Matrix, List of lists
-								filecontent.writerows(examples)
-							elif type(examples[0]) != type([]):
-								# Vector, List
-								filecontent.writerow(examples)
-					return
-
-				print "ERROR: write({0}/{1}) with examples failed".format(directory, filename)
-				return
-		except:
-			with open("{0}/{1}".format(directory, filename), 'a') as f:
-				f.write(text)
-
-				return
-
-			print "ERROR: write({0}/{1}) with text failed".format(directory, filename)
-			return
+	
 
 if __name__ == '__main__':
-	if len(sys.argv) == 2:
-		i = int(sys.argv[1])
-		BibTeX_Cleanup(i)
-	else:
-		BibTeX_Cleanup()
-
-# [1] Jialu Liu, Kin Hou Lei, Jeffery Yufei Liu, Chi Wang, and Jiawei Han. 2013. Ranking-based name matching for author disambiguation in bibliographic data. In Proceedings of the 2013 KDD Cup 2013 Workshop (KDD Cup '13). ACM, New York, NY, USA, Article 8, 8 pages.
+	try:
+		if len(argv) == 2:
+			s = str(argv[1])
+			BibTeX_Merger(importDir=s)
+		elif len(argv) == 3:
+			s = str(argv[1])
+			n = int(argv[2])
+			BibTeX_Merger(importDir=s, numFiles=n)
+		else:
+			BibTeX_Merger()
+	except UserError:
+		PrintException("UserError")
+	except ProgramError:
+		PrintException("ProgramError")
+	except BibTeXParserError:
+		PrintException("BibTeXParserError")
