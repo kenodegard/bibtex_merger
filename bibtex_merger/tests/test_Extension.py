@@ -97,6 +97,14 @@ class TestExtension(unittest.TestCase):
 		except ExtensionError as e:
 			self.assertEqual(str(e), "Attempted to use an unsupported file format (.test)")
 
+	def extErrorMessyState(self):
+		ee = ExtensionError(ext="test", state=ExtensionError.READ)
+		ee.state = -1
+		raise ee
+
+	def test_ExtensionError_catching_bad_state(self):
+		self.assertRaises(ValueError)
+
 
 if __name__ == '__main__':
 	unittest.main()
