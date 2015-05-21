@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-from src import __version__ as version
+from bibtex_merger import __version__ as version
 
 setup(
     name         = 'bibtex_merger',

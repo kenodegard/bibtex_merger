@@ -12,9 +12,9 @@ from sklearn.cross_validation import train_test_split
 import ConfigParser
 
 from errors import *
-from core import BaseHandlers
+from core import Base
 
-class BibTeX_Merger(BaseHandlers):
+class BibTeX_Merger(Base):
 	def __init__(self,	numFiles = -1,
 						importDir = '.',
 						verbose = False,
