@@ -16,9 +16,9 @@ install:
         pip install sphinx;
     fi;
   - pip install coverage
-  - pip install Levenshtein
-  - pip install fuzzy
-  - pip install gmpy2
+  - python Levenshtein/setup.py install
+  - python Fuzzy/setup.py install
+  - python gmpy2/setup.py install
   - python setup.py install
 script:
   - nosetests --with-coverage  --cover-erase --cover-package=src
