@@ -16,22 +16,6 @@ install:
         pip install sphinx;
     fi;
   - pip install coverage
-  - cd bibtex_merger/Levenshtein && python setup.py install && cd ../..
-  - cd bibtex_merger/Fuzzy && python setup.py install && ../..
-  # Install gmpy2 dependencies
-  - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
-  - tar xzvf mpc-1.0.2.tar.gz
-  - pushd mpc-1.0.2
-  - ./configure
-  - make
-  - sudo make install
-  - popd
-  # End install gmpy2 dependencies
-  # - cd bibtex_merger/gmpy2 && python setup.py install
-  # - cd ../..
-  - pip install gmpy2
-  # - pip install sklearn
-  # - pip install numpy
   - python setup.py install
 script:
   - nosetests --with-coverage  --cover-erase --cover-package=src
