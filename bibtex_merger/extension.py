@@ -52,9 +52,9 @@ class Extension(object):
 		"""
 		The write method for this Extension object.
 		"""
-		if not self._writer:
+		if not self.writer:
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
-		return self._writer(args, kwargs)
+		return self.writer(args, kwargs)
 
 class ExtensionError(Exception):
 	"""Exception raised for Extension object errors.

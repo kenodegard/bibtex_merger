@@ -81,6 +81,22 @@ class TestExtension(unittest.TestCase):
 	def test_ExtensionError_bad_state(self):
 		self.assertRaises(ValueError, self.extError, ext="test", state=-1)
 
+	def test_ExtensionError_catching(self):
+		try:
+			raise ExtensionError(ext="test", state=ExtensionError.READ)
+		except ExtensionError as e:
+			self.assertEqual(str(e), "Attempted to read an unsupported file format (.test)")
+
+		try:
+			raise ExtensionError(ext="test", state=ExtensionError.WRITE)
+		except ExtensionError as e:
+			self.assertEqual(str(e), "Attempted to write an unsupported file format (.test)")
+
+		try:
+			raise ExtensionError(ext="test", state=ExtensionError.GENERAL)
+		except ExtensionError as e:
+			self.assertEqual(str(e), "Attempted to use an unsupported file format (.test)")
+
 
 if __name__ == '__main__':
 	unittest.main()
