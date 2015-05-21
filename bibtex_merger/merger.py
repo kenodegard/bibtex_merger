@@ -260,17 +260,17 @@ class BibTeX_Merger(Base):
 		# pull out non-author entries
 		self.db_nonauthor = [e for e in self.db.entries if self.author not in e.keys()]
 
-		print "db_fixed:      ", len(self.db_fixed)
-		print "db_etal:       ", len(self.db_etal)
-		print "db_nonauthor:  ", len(self.db_nonauthor)
+		print("db_fixed:      ", len(self.db_fixed))
+		print("db_etal:       ", len(self.db_etal))
+		print("db_nonauthor:  ", len(self.db_nonauthor))
 
-		print ""
-		print "by none split costs"
-		# print "(num entries)", len(self.db_fixed) + len(self.db_etal)
+		print("")
+		print("by none split costs")
+		# print("(num entries)", len(self.db_fixed) + len(self.db_etal))
 		bc = len(self.db_fixed) + len(self.db_etal)
-		print "best-case:", bc, ch.comb(bc, 2)
+		print("best-case:", bc, ch.comb(bc, 2))
 		wc = bc
-		print "worst-case:", wc, ch.comb(wc, 2)
+		print("worst-case:", wc, ch.comb(wc, 2))
 
 		self.bagged = {}
 		for e in self.db_fixed:
@@ -283,7 +283,7 @@ class BibTeX_Merger(Base):
 					self.bagged[numAuthors].append(e)
 			except IndexError:
 				if self.verbose:
-					print "ERROR: fixed num: skipping ({})".format(e[self.author])
+					print("ERROR: fixed num: skipping ({})".format(e[self.author]))
 
 		for e in self.db_etal:
 			try:
@@ -299,15 +299,15 @@ class BibTeX_Merger(Base):
 					self.bagged[numAuthors].append(e)
 			except IndexError:
 				if self.verbose:
-					print "ERROR: etal num: skipping ({})".format(e[self.author])
+					print("ERROR: etal num: skipping ({})".format(e[self.author]))
 
-		print ""
-		print "by # authors split costs"
-		# print "(len: num entries)", [[i, len(e)] for i, e in self.bagged.iteritems()]
+		print("")
+		print("by # authors split costs")
+		# print("(len: num entries)", [[i, len(e)] for i, e in self.bagged.iteritems()])
 		bc = min([len(e) for i, e in self.bagged.iteritems()])
-		print "best-case:", bc, ch.comb(bc, 2)
+		print("best-case:", bc, ch.comb(bc, 2))
 		wc = max([len(e) for i, e in self.bagged.iteritems()])
-		print "worst-case:", wc, ch.comb(wc, 2)
+		print("worst-case:", wc, ch.comb(wc, 2))
 
 		for groupID, groupValues in dict(self.bagged).iteritems():
 			alphaBagged = {}
@@ -320,7 +320,7 @@ class BibTeX_Merger(Base):
 							letter += a[0][0].lower()
 							letter += a[1][0].lower()
 						# else:
-						# 	print "ignore 'others' author"
+						# 	print("ignore 'others' author")
 
 					added = False
 					for key in [key for key in alphaBagged.keys() if key.find(letter) == 0]:
@@ -334,17 +334,17 @@ class BibTeX_Merger(Base):
 							alphaBagged[letter].append(e)
 				except IndexError:
 					if self.verbose:
-						print "ERROR: letter: skipping ({})".format(e[self.author])
+						print("ERROR: letter: skipping ({})".format(e[self.author]))
 
 			self.bagged[groupID] = alphaBagged
 
-		print ""
-		print "by # authors and alpha key split costs"
-		# print "(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()]
+		print("")
+		print("by # authors and alpha key split costs")
+		# print("(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()])
 		bc = min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print "best-case:", bc, ch.comb(bc, 2)
+		print("best-case:", bc, ch.comb(bc, 2))
 		wc = max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print "worst-case:", wc, ch.comb(wc, 2)
+		print("worst-case:", wc, ch.comb(wc, 2))
 
 		return
 
@@ -425,7 +425,7 @@ class BibTeX_Merger(Base):
 
 
 							if (editDistance * phonDistance) >= self.shallowDeepCompDiv:
-								# print "COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2
+								# print("COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2)
 								self.DeepCompare(entry1, entry2)
 								numComp[lenID][alphaID] += 1
 
@@ -433,7 +433,7 @@ class BibTeX_Merger(Base):
 							combDist[editDistance * phonDistance] = [authors1, authors2]
 						except UnicodeEncodeError:
 							if self.verbose:
-								print "ERROR: skipping"
+								print("ERROR: skipping")
 
 		
 		# statistical output
@@ -443,26 +443,26 @@ class BibTeX_Merger(Base):
 		# for m in xrange(0, len(maxDistance)):
 		# 	maxD = maxDistance[m]
 
-		# 	print "combDist:", maxD
-		# 	print "authors1:", combDist[maxD][0]
-		# 	print "authors2:", combDist[maxD][1]
-		# 	print ""
+		# 	print("combDist:", maxD)
+		# 	print("authors1:", combDist[maxD][0])
+		# 	print("authors2:", combDist[maxD][1])
+		# 	print("")
 
 		# 
-		print ""
-		print "deep compare done"
+		print("")
+		print("deep compare done")
 		bc = min([min([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		print "best-case:", bc
+		print("best-case:", bc)
 		wc = max([max([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		print "worst-case:", wc
+		print("worst-case:", wc)
 
-		print ""
-		print "predictions"
-		print "# duplicate matches:", sum(self.allPredictionsClass)
-		print "# of deep comparisons:", self.deepCompares
-		print "# of shallow comparisons:", self.shallowCompares
-		print "max # comparisons:", self.maxCompares
-		print ""
+		print("")
+		print("predictions")
+		print("# duplicate matches:", sum(self.allPredictionsClass))
+		print("# of deep comparisons:", self.deepCompares)
+		print("# of shallow comparisons:", self.shallowCompares)
+		print("max # comparisons:", self.maxCompares)
+		print("")
 
 		return
 
@@ -500,13 +500,13 @@ class BibTeX_Merger(Base):
 					while not label:
 						os.system('clear')
 						# progress bar equivalent, print out which comparison we are on
-						print "{}/{}".format(self.shallowCompares, self.maxCompares)
+						print("{}/{}".format(self.shallowCompares, self.maxCompares))
 						# print out the summed percent error
-						print "prediction: {} (0.4 means low error, 1 means high error)".format(sv)
+						print("prediction: {} (0.4 means low error, 1 means high error)".format(sv))
 						# display all of the shared fields to manually compare
 						# CONSIDER: maybe also outputting non-shared fields is also useful???
 						for k in keysToComp:
-							print "e1: {}\ne2: {}\n".format(entry1[k], entry2[k])
+							print("e1: {}\ne2: {}\n".format(entry1[k], entry2[k]))
 						label = raw_input("Are the entries the same? [y, n] ")
 
 						label = str(label).lower()
@@ -532,20 +532,20 @@ class BibTeX_Merger(Base):
 
 				if prediction > 0.5:
 					self.allPredictionsClass.append(1)
-					print "duplicates", entry1[self.id], entry2[self.id]
+					print("duplicates", entry1[self.id], entry2[self.id])
 				else:
 					self.allPredictionsClass.append(0)
 		except KeyError:
 			if self.verbose:
-				print "ERROR: skipping"
+				print("ERROR: skipping")
 
 		return
 
 	def Learner(self):
 		self.__title__("Learner")
 
-		print "defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted
-		print "# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted)
+		print("defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted)
+		print("# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted))
 
 		dataset = []
 		if self.doLearning == self.doLearnings['remakeData']:
@@ -580,7 +580,7 @@ class BibTeX_Merger(Base):
 		train_accuracy = float(numpy.mean(y_train_prediction == y_train) * 100)
 		test_accuracy  = float(numpy.mean(y_test_prediction  == y_test)  * 100)
 
-		# print model.coef_
+		#(print model.coef_)
 
 		# if self.learningModel == self.learningModels['fminunc']:
 		# 	os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(

@@ -38,7 +38,7 @@ class Base(object):
 		string += "#" + (" " * left) + title + (" " * right) + "#\n"
 		string += ("#" * width)
 		
-		print string
+		print(string)
 		
 		return
 
@@ -56,7 +56,7 @@ class Base(object):
 		string = "||" + (" " * left) + title + (" " * right) + "||\n"
 		string += ("=" * width)
 
-		print string
+		print(string)
 		
 		return
 
@@ -151,7 +151,7 @@ class Base(object):
 		# reading
 		config = self.__read__(self.installDir, self.configFile)
 
-		print config
+		print(config)
 
 		# writing
 		config.add_section('Section1')

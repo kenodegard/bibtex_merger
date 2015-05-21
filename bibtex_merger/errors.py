@@ -50,4 +50,8 @@ def PrintException(errStr="Error"):
 
     maxlinelen = 25
 
-    print "\n\nERROR ({}) ({}, line {}, \"{}\"):\n{}\n\n".format(errStr, filename, lineno, line[:maxlinelen] + ("..." if len(line) > maxlinelen else ""), exc_obj)
+    print("\n\nERROR ({}) ({}, line {}, \"{}\"):\n{}\n\n".format(errStr, filename, lineno, line[:maxlinelen] + ("..." if len(line) > maxlinelen else ""), exc_obj))
+
+
+
+
