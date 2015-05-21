@@ -1,6 +1,6 @@
 import unittest
 
-from extension import *
+from bibtex_merger.extension import *
 
 class TestExtension(unittest.TestCase):
 
