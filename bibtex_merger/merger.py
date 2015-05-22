@@ -62,7 +62,7 @@ class BibTeX_Merger(Core):
 
 		return
 
-	def extensions(self):
+	def __initExtensions__(self):
 		def cfgRead(filename):
 			config = ConfigParser.RawConfigParser()
 			config.read(filename)
@@ -100,7 +100,7 @@ class BibTeX_Merger(Core):
 
 		return [cfgExt, bibExt, csv]
 
-	def run(self):
+	def __run__(self):
 		self.Import()
 		self.PreProcessor()
 		self.Bagging()
@@ -111,7 +111,7 @@ class BibTeX_Merger(Core):
 
 		return
 
-	def initConstants(self):
+	def __initConstants__(self):
 		self.logger = logging.getLogger(__name__)
 
 		self.doLearnings = ['off', 'remakeData', 'remakeModel']
