@@ -1,10 +1,10 @@
-import logging
+import logging, os, re
 
 logger = logging.getLogger(__name__)
 __all__ = [	'Extension', 'ExtensionError'	]
 
 class Extension(object):
-	def __init__(self, ext=".*", reader=None, writer=None):
+	def __init__(self, ext=r".*", reader=None, writer=None):
 		# set arguments
 		self._extension = ext
 		self._reader = reader
@@ -13,7 +13,6 @@ class Extension(object):
 		# assert valid reader argument
 		if not isinstance(self._extension, str):
 			raise ValueError("Extension's ext argument must be a str")
-		self._extension = ("." if self._extension[0] != "." else "") + self._extension
 
 		# assert valid reader argument
 		if self._reader and not hasattr(self._reader, '__call__'):
@@ -27,9 +26,9 @@ class Extension(object):
 	@property
 	def extension(self):
 		"""
-		The file extension for this Extension object.
+		The file extension (in regular expression) for this Extension object.
 		"""
-		return self._extension
+		return r"\." + self._extension
 
 	@property
 	def reader(self):
@@ -51,6 +50,11 @@ class Extension(object):
 		"""
 		if not self.reader:
 			raise ExtensionError(self.extension, ExtensionError.READ)
+
+		ext = os.path.splitext(filename)[1]
+		if not re.match(self.extension, ext):
+			raise ExtensionError(self.extension, ExtensionError.GENERAL)
+
 		return self.reader(filename)
 
 	def write(self, filename, content):
@@ -59,6 +63,11 @@ class Extension(object):
 		"""
 		if not self.writer:
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
+
+		ext = os.path.splitext(filename)[1]
+		if not re.match(self.extension, ext):
+			raise ExtensionError(self.extension, ExtensionError.GENERAL)
+
 		return self.writer(filename, content)
 
 class ExtensionError(Exception):
@@ -73,7 +82,7 @@ class ExtensionError(Exception):
 	WRITE = 1
 	GENERAL = 2
 
-	def __init__(self, ext=".*", state=None):
+	def __init__(self, ext=r".*", state=None):
 		self.ext = ext
 		self.state = state
 

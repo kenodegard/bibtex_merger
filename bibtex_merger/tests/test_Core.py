@@ -81,14 +81,14 @@ class TestCore(unittest.TestCase):
 	def test_extensionNames1(self):
 		c = Core(Extension(ext="test"))
 
-		self.assertEqual(c.extensionNames, [".test"])
+		self.assertEqual(c.extensionNames, [r"\.test"])
 
 	def test_extensionNames2(self):
 		c = Core([	Extension(ext="test1"),
 					Extension(ext="test2"),
 					Extension(ext="test3")	])
 
-		self.assertEqual(c.extensionNames, [".test1", ".test2", ".test3"])
+		self.assertEqual(c.extensionNames, [r"\.test1", r"\.test2", r"\.test3"])
 
 	###########
 	# extensionObjects
@@ -98,7 +98,7 @@ class TestCore(unittest.TestCase):
 		c = Core(Extension(ext="test"))
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
-		self.assertEqual(c.extensionObjects[0].extension, ".test")
+		self.assertEqual(c.extensionObjects[0].extension, r"\.test")
 
 	def test_extensionObjects2(self):
 		c = Core([	Extension(ext="test1"),
@@ -106,9 +106,9 @@ class TestCore(unittest.TestCase):
 					Extension(ext="test3")	])
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
-		self.assertEqual(c.extensionObjects[0].extension, ".test1")
-		self.assertEqual(c.extensionObjects[1].extension, ".test2")
-		self.assertEqual(c.extensionObjects[2].extension, ".test3")
+		self.assertEqual(c.extensionObjects[0].extension, r"\.test1")
+		self.assertEqual(c.extensionObjects[1].extension, r"\.test2")
+		self.assertEqual(c.extensionObjects[2].extension, r"\.test3")
 
 	###########
 	# __read__
@@ -117,7 +117,7 @@ class TestCore(unittest.TestCase):
 	dataDir = "bibtex_merger/tests/data"
 
 	def tRead(self, filename):
-		with open("{}/{}".format(self.dataDir, filename), "r") as f:
+		with open(filename, "r") as f:
 			return f.read()
 
 		raise Exception
@@ -125,16 +125,15 @@ class TestCore(unittest.TestCase):
 	def test_read(self):
 		c = Core(Extension(ext="txt", reader=self.tRead))
 
-		self.assertEqual(c.__read__("sample.txt"), "Sample file with text")
+		self.assertEqual(c.__read__("{}/sample.txt".format(self.dataDir)), "Sample file with text")
 
 	###########
 	# __write__
 	###########
 
 	def tWrite(self, filename, content):
-		with open("{}/{}".format(self.dataDir, filename), "w") as f:
-			f.write(content)
-			return
+		with open(filename, "w") as f:
+			return f.write(content)
 
 		raise Exception
 
@@ -144,11 +143,11 @@ class TestCore(unittest.TestCase):
 		f = "sample2.txt"
 		t = "Some random text to insert"
 
-		c.__write__(f, t)
+		c.__write__("{}/{}".format(self.dataDir, f), t)
 
-		self.assertEqual(c.__read__(f), t)
+		self.assertEqual(c.__read__("{}/{}".format(self.dataDir, f)), t)
 
-		os.remove(f)
+		os.remove("{}/{}".format(self.dataDir, f))
 
 if __name__ == '__main__':
 	unittest.main()

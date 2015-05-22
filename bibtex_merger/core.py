@@ -1,6 +1,7 @@
-import os, abc, sys, logging
+import os, abc, sys, logging, re
 
 from extension import *
+from errors import *
 
 logger = logging.getLogger(__name__)
 __all__ = [	'Core'	]
@@ -71,14 +72,15 @@ class Core(object):
 		ext = os.path.splitext(filename)[1]
 
 		try:
-			index = self.extensionNames.index(ext)
+			indeces = [bool(re.match(reex, ext)) for reex in self.extensionNames]
+			index   = indeces.index(True)
 
-			assert self.extensionObjects[index].extension == ext
+			assert bool(re.match(self.extensionObjects[index].extension, ext)) == True
 
 			return self.extensionObjects[index].read(filename=filename)
 		except ExtensionError:
 			# unsupported extension
-			raise ("Attempted to read an unsupported file format ({})".format(filename))
+			raise ProgramError("Attempted to read an unsupported file format ({})".format(filename))
 
 		# if extension == ".cfg":
 		# 	config = ConfigParser.RawConfigParser()
@@ -100,14 +102,15 @@ class Core(object):
 		ext = os.path.splitext(filename)[1]
 
 		try:
-			index = self.extensionNames.index(ext)
+			indeces = [bool(re.match(reex, ext)) for reex in self.extensionNames]
+			index   = indeces.index(True)
 
-			assert self.extensionObjects[index].extension == ext
+			assert bool(re.match(self.extensionObjects[index].extension, ext)) == True
 
 			return self.extensionObjects[index].write(filename=filename, content=content)
 		except ValueError:
 			# unsupported extension
-			raise ExtensionError("({}/{})".format(directory, filename))
+			raise ProgramError("Attempted to write an unsupported file format ({})".format(filename))
 
 		# if extension == ".cfg":
 		# 	with open("{}/{}".format(directory, filename), 'wb') as f:

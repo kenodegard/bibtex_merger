@@ -7,41 +7,49 @@ class TestExtension(unittest.TestCase):
 	###########
 	# Extension
 	###########
-	def tRead(self, *args, **kwargs):
+	def tRead(self, filename):
 		return "READING"
 
-	def tWrite(self, *args, **kwargs):
+	def tWrite(self, filename, content):
 		return "WRITING"
 
 	def test_Extension_base(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
-		self.assertEqual(testExt.extension, ".test")
-		self.assertEqual(testExt.read(), "READING")
-		self.assertEqual(testExt.write(), "WRITING")
+		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.read("sample.test"), "READING")
+		self.assertEqual(testExt.write("sample.test", None), "WRITING")
 
 	def test_Extension_no_extension(self):
 		testExt = Extension(reader=self.tRead, writer=self.tWrite)
-		self.assertEqual(testExt.extension, ".*")
-		self.assertEqual(testExt.read(), "READING")
-		self.assertEqual(testExt.write(), "WRITING")
+
+		self.assertEqual(testExt.extension, r"\..*")
+
+		self.assertEqual(testExt.read("sample.test"), "READING")
+		self.assertEqual(testExt.write("sample.test", None), "WRITING")
+
+		self.assertEqual(testExt.read("sample.andthis"), "READING")
+		self.assertEqual(testExt.write("sample.andthis", None), "WRITING")
+
+		self.assertEqual(testExt.read("sample.butthat"), "READING")
+		self.assertEqual(testExt.write("sample.butthat", None), "WRITING")
 
 	def test_Extension_no_read(self):
 		testExt = Extension(ext="test", writer=self.tWrite)
-		self.assertEqual(testExt.extension, ".test")
-		self.assertEqual(testExt.write(), "WRITING")
-		self.assertRaises(ExtensionError, testExt.read)
+		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.write("sample.test", None), "WRITING")
+		self.assertRaises(ExtensionError, testExt.read, "sample.test")
 
 	def test_Extension_no_write(self):
 		testExt = Extension(ext="test", reader=self.tRead)
-		self.assertEqual(testExt.extension, ".test")
-		self.assertEqual(testExt.read(), "READING")
-		self.assertRaises(ExtensionError, testExt.write)
+		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.read("sample.test"), "READING")
+		self.assertRaises(ExtensionError, testExt.write, "sample.test", None)
 
 	def test_Extension_no_readwrite(self):
 		testExt = Extension(ext="test")
-		self.assertEqual(testExt.extension, ".test")
-		self.assertRaises(ExtensionError, testExt.read)
-		self.assertRaises(ExtensionError, testExt.write)
+		self.assertEqual(testExt.extension, r"\.test")
+		self.assertRaises(ExtensionError, testExt.read, "sample.test")
+		self.assertRaises(ExtensionError, testExt.write, "sample.test", None)
 
 	def test_Extension_bad_extension(self):
 		self.assertRaises(ValueError, Extension, ext=12345, reader=self.tRead, writer=self.tWrite)
