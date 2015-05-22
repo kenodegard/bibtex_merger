@@ -45,7 +45,7 @@ install:
 
   - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
   - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
-  - ./configure --prefix=bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --enable-fat
+  - ./configure --prefix=~/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --enable-fat
   - make
   - make check
   - sudo make install
@@ -53,7 +53,7 @@ install:
 
   - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
   - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
-  - ./configure --prefix=bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=bibtex_merger/tmp/static
+  - ./configure --prefix=~/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=~/bibtex_merger/tmp/static
   - make
   - make check
   - sudo make install
@@ -61,7 +61,7 @@ install:
   
   - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
   - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
-  - ./configure --prefix=bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=bibtex_merger/tmp/static --with-mpfr=bibtex_merger/tmp/static
+  - ./configure --prefix=~/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=~/bibtex_merger/tmp/static --with-mpfr=~/bibtex_merger/tmp/static
   - make
   - make check
   - sudo make install
