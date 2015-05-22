@@ -25,10 +25,10 @@ class BibTeX_Merger(Core):
 						summedPercentErrorDiv = [0.4, 1.0],
 						learningModel = 'fminunc',
 						doLearning = 'remakeModel'):
-		super(BibTeX_Merger, self).__init__(executions)
+		super(BibTeX_Merger, self).__init__(self.__initExtensions__())
 
 
-		self.initConstants()
+		self.__initConstants__()
 
 		# Optionally passed flag from command line that specifies how many files to use
 		# If set to -1 (default) then all files in the data/0_original/ directory will be used
@@ -58,7 +58,7 @@ class BibTeX_Merger(Core):
 		# available options: off | remakeData | remakeModel
 		self.doLearning = self.doLearnings[doLearning]
 
-		# self.run()
+		# self.__run__()
 
 		return
 
@@ -98,7 +98,7 @@ class BibTeX_Merger(Core):
 				raise ProgramError("CSV content has bad format, write failed")
 		csvExt = Extension(ext=r'csv', reader=csvRead, writer=csvWrite)
 
-		return [cfgExt, bibExt, csv]
+		return [cfgExt, bibExt, csvExt]
 
 	def __run__(self):
 		self.Import()

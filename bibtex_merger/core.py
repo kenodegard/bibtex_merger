@@ -16,8 +16,11 @@ class Core(object):
 	def __init__(self, ext):
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]
-		elif isinstance(ext, list) and all(isinstance(x, Extension) for x in ext):
-			self._extensionObjects	= ext
+		elif isinstance(ext, list):
+			if all(isinstance(x, Extension) for x in ext):
+				self._extensionObjects	= ext
+			else:
+				raise ValueError("Core ext attribute only accepts Extensions, you have included a non-Extension object")
 		else:
 			raise ValueError("Core expects either a single Extension or a list of Extensions")
 

@@ -5,4 +5,4 @@ __all__ = [
 
 __version__ = 'devel'
 
-# from . import core, errors, extension
+from . import core, errors, extension, merger

@@ -11,4 +11,4 @@ from bibtex_merger.merger import *
 
 class TestBibTeX_Merger(unittest.TestCase):
 	def test_base(self):
-		self.assertEqual(2 + 2, 4)
+		BibTeX_Merger()
