@@ -4,7 +4,7 @@ from distutils.core import setup
 from bibtex_merger import __version__ as version
 
 setup(
-    name         = 'bibtex_merger',
+    name         = 'BibTeX Merger',
     version      = version,
     url          = "https://github.com/njalerikson/bibtex_merger",
     author       = "Ken Odegard",
