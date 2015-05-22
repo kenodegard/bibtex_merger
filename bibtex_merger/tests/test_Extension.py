@@ -60,6 +60,16 @@ class TestExtension(unittest.TestCase):
 	def test_Extension_bad_write(self):
 		self.assertRaises(ValueError, Extension, ext="test", reader=self.tRead, writer="bad writer")
 
+	def test_Extension_invalid_ext_read(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+
+		self.assertRaises(ExtensionError, testExt.read, filename="sample.txt")
+
+	def test_Extension_invalid_ext_write(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+
+		self.assertRaises(ExtensionError, testExt.write, filename="sample.txt", content=None)
+
 	###########
 	# ExtensionError
 	###########
@@ -111,13 +121,21 @@ class TestExtension(unittest.TestCase):
 		except ExtensionError as e:
 			self.assertEqual(str(e), "Attempted to use an unsupported file format (.test)")
 
-	def extErrorMessyState(self):
+	def extErrorAttemptExtChange(self):
+		ee = ExtensionError(ext="test", state=ExtensionError.READ)
+		ee.ext = "blue"
+		raise ee
+
+	def extErrorAttemptStateChange(self):
 		ee = ExtensionError(ext="test", state=ExtensionError.READ)
 		ee.state = -1
 		raise ee
 
-	def test_ExtensionError_catching_bad_state(self):
-		self.assertRaises(ValueError)
+	def test_ExtensionError_catch_ext_change(self):
+		self.assertRaises(AttributeError, self.extErrorAttemptExtChange)
+
+	def test_ExtensionError_catch_state_change(self):
+		self.assertRaises(AttributeError, self.extErrorAttemptStateChange)
 
 
 if __name__ == '__main__':

@@ -90,22 +90,28 @@ class ExtensionError(Exception):
 	GENERAL = 2
 
 	def __init__(self, ext=r".*", state=None):
-		self.ext = ext
-		self.state = state
+		self._ext = ext
+		self._state = state
 
 		if not isinstance(self.ext, str):
 			raise ValueError("Extension's ext argument must be a str")
-		self.ext = ("." if self.ext[0] != "." else "") + self.ext
+		self._ext = ("." if self._ext[0] != "." else "") + self._ext
 
 		if self.state not in [self.READ, self.WRITE, self.GENERAL]:
 			raise ValueError("ExtensionError has invalid state ({}), the error state must be either ExtensionError.READ, ExtensionError.WRITE, or ExtensionError.GENERAL".format(self.state))
+
+	@property
+	def ext(self):
+		return self._ext
+
+	@property
+	def state(self):
+		return self._state
 
 	def __str__(self):
 		if self.state == self.READ:
 			return "Attempted to read an unsupported file format ({})".format(self.ext)
 		elif self.state == self.WRITE:
 			return "Attempted to write an unsupported file format ({})".format(self.ext)
-		elif self.state == self.GENERAL:
+		else:
 			return "Attempted to use an unsupported file format ({})".format(self.ext)
-
-		raise ValueError("ExtensionError has invalid state ({}), the error state must be either ExtensionError.READ, ExtensionError.WRITE, or ExtensionError.GENERAL".format(self.state))
