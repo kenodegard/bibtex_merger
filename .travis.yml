@@ -16,9 +16,16 @@ install:
         pip install sphinx;
     fi;
   - pip install coverage
-  - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.zip 
-  - unzip bibtex_cleanup_parser-master.zip -d bibtex_merger/bibtexparser
-  - cd bibtex_cleanup_parser && python setup.py install && cd ..
+  # - wget https://github.com/njalerikson/bibtex_cleanup_parser/tarball/master.tar.gz 
+  # - unzip bibtex_cleanup_parser-master.zip
+  # - cd bibtex_cleanup_parser && python setup.py install && cd ..
+  # start bibtex_cleanup_parser dependency
+  - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz -O /tmp/bibtexparser.tar.gz
+  - tar -xvf /tmp/bibtexparser.tar.gz
+  - cd tmp/bibtexparser
+  - python setup.py install
+  - cd ../..
+  # end bibtex_cleanup_parser dependency
   - python setup.py install
 script:
   - nosetests --with-coverage  --cover-erase --cover-package=bibtex_merger
