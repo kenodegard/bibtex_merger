@@ -41,13 +41,21 @@ install:
   # end Fuzzy dependency
   ##########
   # start pre gmpy2 dependency
+  - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
+  - tar -xvf gmp-6.0.0a.tar.bz2
+  - cd gmp-6.0.0
+  - ./configure
+  - make
+  - sudo make install
+  - cd ..
+  
   - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
   - tar -xvf mpc-1.0.2.tar.gz
   - cd mpc-1.0.2
   - ./configure
   - make
   - sudo make install
-  - popd
+  - cd ..
   # end pre gmpy2 dependency
   ##########
   # start gmpy2 dependency
