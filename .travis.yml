@@ -40,6 +40,16 @@ install:
   - cd ..
   # end Fuzzy dependency
   ##########
+  # start pre gmpy2 dependency
+  - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
+  - tar -xvf mpc-1.0.2.tar.gz
+  - cd mpc-1.0.2
+  - ./configure
+  - make
+  - sudo make install
+  - popd
+  # end pre gmpy2 dependency
+  ##########
   # start gmpy2 dependency
   - wget https://pypi.python.org/packages/source/g/gmpy2/gmpy2-2.0.5.zip
   - unzip gmpy2-2.0.5.zip && cd gmpy2-2.0.5
