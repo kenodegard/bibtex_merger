@@ -10,9 +10,9 @@ class Extension(object):
 		self._reader = reader
 		self._writer = writer
 
-		# assert valid reader argument
 		if not isinstance(self._extension, str):
-			raise ValueError("Extension's ext argument must be a str")
+			raise ValueError("Extension's ext argument ({}) must be a str".format(self._extension))
+		self._extension = re.compile(r"\." + self._extension)
 
 		# assert valid reader argument
 		if self._reader and not hasattr(self._reader, '__call__'):
@@ -28,7 +28,14 @@ class Extension(object):
 		"""
 		The file extension (in regular expression) for this Extension object.
 		"""
-		return r"\." + self._extension
+		return self._extension.pattern
+
+	@property
+	def reextension(self):
+		"""
+		The file extension (in regular expression) for this Extension object.
+		"""
+		return self._extension
 
 	@property
 	def reader(self):
@@ -52,7 +59,7 @@ class Extension(object):
 			raise ExtensionError(self.extension, ExtensionError.READ)
 
 		ext = os.path.splitext(filename)[1]
-		if not re.match(self.extension, ext):
+		if not re.match(self.reextension, ext):
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.reader(filename)
@@ -65,7 +72,7 @@ class Extension(object):
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
 
 		ext = os.path.splitext(filename)[1]
-		if not re.match(self.extension, ext):
+		if not re.match(self.reextension, ext):
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.writer(filename, content)

@@ -1,7 +1,7 @@
 import os, abc, sys, logging, re
 
-from extension import *
-from errors import *
+from bibtex_merger.extension import *
+from bibtex_merger.errors import *
 
 logger = logging.getLogger(__name__)
 __all__ = [	'Core'	]
@@ -15,7 +15,8 @@ class Core(object):
 		else:
 			raise ValueError("Core expects either a single Extension or a list of Extensions")
 
-		self._extensionNames	= [x.extension for x in self.extensionObjects]
+		self._extensionRegexs	= [x.reextension for x in self.extensionObjects]
+		self._extensionPatters	= [x.extension   for x in self.extensionObjects]
 		return
 
 	@property
@@ -23,8 +24,12 @@ class Core(object):
 	    return self._extensionObjects
 
 	@property
-	def extensionNames(self):
-		return self._extensionNames
+	def extensionRegexs(self):
+		return self._extensionRegexs
+
+	@property
+	def extensionPatterns(self):
+		return self._extensionPatters
 
 	def __title__(self, title, out=sys.stdout):
 		if not isinstance(title, str):
@@ -37,8 +42,8 @@ class Core(object):
 		if len(title) > maxTextWidth:
 			title = title[:maxTextWidth]
 		
-		left  = ((width - len(title)) / 2) - 1
-		right = left + ((width - len(title)) % 2)
+		left  = int(((width - len(title)) / 2) - 1)
+		right = int(left + ((width - len(title)) % 2))
 		string = "\n" + ("#" * width) + "\n"
 		string += "#" + (" " * left) + title + (" " * right) + "#\n"
 		string += ("#" * width)
@@ -58,8 +63,8 @@ class Core(object):
 		if len(title) > maxTextWidth:
 			title = title[:maxTextWidth]
 
-		left  = ((width - len(title)) / 2) - 2
-		right = left + ((width - len(title)) % 2)
+		left  = int(((width - len(title)) / 2) - 2)
+		right = int(left + ((width - len(title)) % 2))
 		string = "||" + (" " * left) + title + (" " * right) + "||\n"
 		string += ("=" * width)
 
@@ -72,10 +77,10 @@ class Core(object):
 		ext = os.path.splitext(filename)[1]
 
 		try:
-			indeces = [bool(re.match(reex, ext)) for reex in self.extensionNames]
+			indeces = [bool(re.match(reex, ext)) for reex in self.extensionRegexs]
 			index   = indeces.index(True)
 
-			assert bool(re.match(self.extensionObjects[index].extension, ext)) == True
+			assert bool(re.match(self.extensionObjects[index].reextension, ext)) == True
 
 			return self.extensionObjects[index].read(filename=filename)
 		except ExtensionError:
@@ -102,10 +107,10 @@ class Core(object):
 		ext = os.path.splitext(filename)[1]
 
 		try:
-			indeces = [bool(re.match(reex, ext)) for reex in self.extensionNames]
+			indeces = [bool(re.match(reex, ext)) for reex in self.extensionRegexs]
 			index   = indeces.index(True)
 
-			assert bool(re.match(self.extensionObjects[index].extension, ext)) == True
+			assert bool(re.match(self.extensionObjects[index].reextension, ext)) == True
 
 			return self.extensionObjects[index].write(filename=filename, content=content)
 		except ValueError:

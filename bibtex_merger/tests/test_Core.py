@@ -17,7 +17,7 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_title1(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		c.__title__(title="Random Title", out=out)
@@ -28,7 +28,7 @@ class TestCore(unittest.TestCase):
 ################################################################################""")
 
 	def test_title2(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		c.__title__(title="a" * 100, out=out)
@@ -39,7 +39,7 @@ class TestCore(unittest.TestCase):
 ################################################################################""")
 
 	def test_title3(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		self.assertRaises(ValueError, c.__title__, title=123, out=out)
@@ -49,7 +49,7 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_subtitle1(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		c.__subtitle__(title="Random Subtitle", out=out)
@@ -59,7 +59,7 @@ class TestCore(unittest.TestCase):
 ================================================================================""")
 
 	def test_subtitle2(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		c.__subtitle__(title="a" * 100, out=out)
@@ -69,7 +69,7 @@ class TestCore(unittest.TestCase):
 ================================================================================""")
 
 	def test_subtitle3(self):
-		c = Core(Extension("none"))
+		c = Core(Extension(ext="none"))
 		out = StringIO()
 
 		self.assertRaises(ValueError, c.__subtitle__, title=123, out=out)
@@ -81,14 +81,14 @@ class TestCore(unittest.TestCase):
 	def test_extensionNames1(self):
 		c = Core(Extension(ext="test"))
 
-		self.assertEqual(c.extensionNames, [r"\.test"])
+		self.assertEqual(c.extensionPatterns, [r"\.test"])
 
 	def test_extensionNames2(self):
 		c = Core([	Extension(ext="test1"),
 					Extension(ext="test2"),
 					Extension(ext="test3")	])
 
-		self.assertEqual(c.extensionNames, [r"\.test1", r"\.test2", r"\.test3"])
+		self.assertEqual(c.extensionPatterns, [r"\.test1", r"\.test2", r"\.test3"])
 
 	###########
 	# extensionObjects
