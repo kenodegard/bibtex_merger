@@ -4,13 +4,7 @@ logger = logging.getLogger(__name__)
 __all__ = [	'Error', 'UserError', 'BibTeXParserError',
 			'ProgramError', 'PrintException'	]
 
-class Error(Exception):
-	pass
-
-	def __str__(self):
-		return self.msg
-
-class UserError(Error):
+class UserError(Exception):
 	"""Exception raised for errors in the user input.
 
 	Attributes:
@@ -20,7 +14,7 @@ class UserError(Error):
 	def __init__(self, msg):
 		self.msg = msg
 
-class BibTeXParserError(Error):
+class BibTeXParserError(Exception):
 	"""Exception raised for errors in the parser.
 
 	Attributes:
@@ -30,7 +24,7 @@ class BibTeXParserError(Error):
 	def __init__(self, msg):
 		self.msg = msg
 
-class ProgramError(Error):
+class ProgramError(Exception):
 	"""Exception raised for errors in the actual program. These errors should
 	only be occurring in development phases not production phases.
 

@@ -9,12 +9,15 @@ from datetime import *
 from collections import OrderedDict
 from sklearn import linear_model
 from sklearn.cross_validation import train_test_split
-import ConfigParser
+import ConfigParser, logging
 
-from errors import *
-from core import Base
+from bibtex_merger.core import *
+from bibtex_merger.extension import *
 
-class BibTeX_Merger(Base):
+logger = logging.getLogger(__name__)
+__all__ = [	'BibTeX_Merger'	]
+
+class BibTeX_Merger(Core):
 	def __init__(self,	numFiles = -1,
 						importDir = '.',
 						verbose = False,
@@ -22,6 +25,9 @@ class BibTeX_Merger(Base):
 						summedPercentErrorDiv = [0.4, 1.0],
 						learningModel = 'fminunc',
 						doLearning = 'remakeModel'):
+		super(BibTeX_Merger, self).__init__(executions)
+
+
 		self.initConstants()
 
 		# Optionally passed flag from command line that specifies how many files to use
@@ -52,9 +58,47 @@ class BibTeX_Merger(Base):
 		# available options: off | remakeData | remakeModel
 		self.doLearning = self.doLearnings[doLearning]
 
-		self.run()
+		# self.run()
 
 		return
+
+	def extensions(self):
+		def cfgRead(filename):
+			config = ConfigParser.RawConfigParser()
+			config.read(filename)
+			return config
+		def cfgWrite(filename, content):
+			with open(filename, 'wb') as f:
+				return content.write(f)
+		cfgExt = Extension(ext=r'cfg', reader=cfgRead, writer=cfgWrite)
+
+		def bibRead(filename):
+			with open(filename, 'r') as f:
+				return bp.load(f, parser=self.parser)
+		bibExt = Extension(ext=r'bib', reader=bibRead)
+
+		def csvRead(filename):
+			with open(filename) as f:
+				return [e for e in csv.reader(f)]
+		def csvWrite(filename, content):
+			with open(filename, 'wb') as f:
+				filecontent = csv.writer(f)
+
+				if type(content) != None:
+					if isinstance(content, list):
+						if len(content) > 0:
+							if isinstance(content[0], list):
+								# Matrix, List of lists
+								filecontent.writerows(content)
+							else:
+								# Vector, List
+								filecontent.writerow(content)
+					return
+
+				raise ProgramError("CSV content has bad format, write failed")
+		csvExt = Extension(ext=r'csv', reader=csvRead, writer=csvWrite)
+
+		return [cfgExt, bibExt, csv]
 
 	def run(self):
 		self.Import()

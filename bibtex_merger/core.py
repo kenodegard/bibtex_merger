@@ -1,12 +1,18 @@
 import os, abc, sys, logging, re
 
 from bibtex_merger.extension import *
-from bibtex_merger.errors import *
 
 logger = logging.getLogger(__name__)
 __all__ = [	'Core', 'CoreError'	]
 
 class Core(object):
+	"""The core program. Processes and deals with the base functionality 
+	
+	Attributes:
+		ext	--	The Extension objects that this Core accepts. Ordered from
+				most specific to generic extensions since the first match
+				found for a filename is the one used.
+	"""
 	def __init__(self, ext):
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]

@@ -1,6 +1,6 @@
 
 __all__ = [
-    'core', 'errors', 'extension'
+    'core', 'errors', 'extension', 'merger'
 ]
 
 __version__ = 'devel'
