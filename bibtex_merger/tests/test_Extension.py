@@ -4,15 +4,15 @@ from bibtex_merger.extension import *
 
 class TestExtension(unittest.TestCase):
 
+	###########
+	# Extension
+	###########
 	def tRead(self, *args, **kwargs):
 		return "READING"
 
 	def tWrite(self, *args, **kwargs):
 		return "WRITING"
 
-	###########
-	# Extension
-	###########
 	def test_Extension_base(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
 		self.assertEqual(testExt.extension, ".test")
@@ -35,6 +35,12 @@ class TestExtension(unittest.TestCase):
 		testExt = Extension(ext="test", reader=self.tRead)
 		self.assertEqual(testExt.extension, ".test")
 		self.assertEqual(testExt.read(), "READING")
+		self.assertRaises(ExtensionError, testExt.write)
+
+	def test_Extension_no_readwrite(self):
+		testExt = Extension(ext="test")
+		self.assertEqual(testExt.extension, ".test")
+		self.assertRaises(ExtensionError, testExt.read)
 		self.assertRaises(ExtensionError, testExt.write)
 
 	def test_Extension_bad_extension(self):

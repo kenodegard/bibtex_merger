@@ -1,7 +1,22 @@
-import os
-import abc
+import os, abc, sys, logging
 
-class Base(object):
+from extension import *
+
+logger = logging.getLogger(__name__)
+__all__ = [	'Core'	]
+
+class Core(object):
+	def __init__(self, ext):
+		if isinstance(ext, Extension):
+			self._extensionObjects	= [ext]
+		elif isinstance(ext, list) and all(isinstance(x, Extension) for x in ext):
+			self._extensionObjects	= ext
+		else:
+			raise ValueError("Core expects either a single Extension or a list of Extensions")
+
+		self._extensionNames	= [x.extension for x in self.extensionObjects]
+		return
+
 	@property
 	def extensionObjects(self):
 	    return self._extensionObjects
@@ -10,27 +25,16 @@ class Base(object):
 	def extensionNames(self):
 		return self._extensionNames
 
-	@extensionObjects.setter
-	def set_extensionObjects(self, ext):
-		if isinstance(ext, Extension):
-			self._extensionObjects	= [ext]
-			self._extensionNames	= [x.extension for x in extensionObjects]
-			return
-		elif isinstance(ext, list) and all(isinstance(x,Extension) for x in ext):
-			self._extensionObjects	= ext
-			self._extensionNames	= [x.extension for x in extensionObjects]
-			return
+	def __title__(self, title, out=sys.stdout):
+		if not isinstance(title, str):
+			raise ValueError("Core.__title__'s title argument ({}) must be str".format(title))
 
-		raise ValueError("set_extensionObjects expects either a single Extension or a list of Extensions")
-
-	def __title__(self, title):
 		width = 80
 		maxTextWidth = width - 4
 		title = title.upper()
 		
 		if len(title) > maxTextWidth:
 			title = title[:maxTextWidth]
-			self.logger.warning("Title trimmed to max width")
 		
 		left  = ((width - len(title)) / 2) - 1
 		right = left + ((width - len(title)) % 2)
@@ -38,25 +42,27 @@ class Base(object):
 		string += "#" + (" " * left) + title + (" " * right) + "#\n"
 		string += ("#" * width)
 		
-		print(string)
+		out.write(string)
 		
 		return
 
-	def __subtitle__(self, title):
+	def __subtitle__(self, title, out=sys.stdout):
+		if not isinstance(title, str):
+			raise ValueError("Core.__subtitle__'s title argument ({}) must be str".format(title))
+
 		width = 80
 		maxTextWidth = width - 6
 		title = title.upper()
 
 		if len(title) > maxTextWidth:
 			title = title[:maxTextWidth]
-			self.logger.warning("Subtitle trimmed to max width")
 
 		left  = ((width - len(title)) / 2) - 2
 		right = left + ((width - len(title)) % 2)
 		string = "||" + (" " * left) + title + (" " * right) + "||\n"
 		string += ("=" * width)
 
-		print(string)
+		out.write(string)
 		
 		return
 
@@ -65,23 +71,19 @@ class Base(object):
 		ext = os.path.splitext(filename)[1]
 
 		try:
-			index = extensionNames.index(ext)
+			index = self.extensionNames.index(ext)
 
-			assert extensionObjects[index] == ext
+			assert self.extensionObjects[index].extension == ext
 
-
-			return
-		except ValueError:
+			return self.extensionObjects[index].read(filename=filename)
+		except ExtensionError:
 			# unsupported extension
-			raise ProgramError("Attempted to read an unsupported file format ({}/{})".format(directory, filename))
-
-
-
+			raise ("Attempted to read an unsupported file format ({})".format(filename))
 
 		# if extension == ".cfg":
 		# 	config = ConfigParser.RawConfigParser()
 		# 	config.read(filename)
-			
+		
 		# 	return config
 		# elif extension == ".bib":
 		# 	with open("{}/{}".format(directory, filename)) as f:
@@ -95,17 +97,14 @@ class Base(object):
 		# if not os.path.exists(directory):
 		# 	os.makedirs(directory)
 
-		extension = os.path.splitext(filename)[1]
+		ext = os.path.splitext(filename)[1]
 
 		try:
-			index = extensionNames.index(ext)
+			index = self.extensionNames.index(ext)
 
-			assert extensionObjects[index] == ext
+			assert self.extensionObjects[index].extension == ext
 
-
-
-
-			return
+			return self.extensionObjects[index].write(filename=filename, content=content)
 		except ValueError:
 			# unsupported extension
 			raise ExtensionError("({}/{})".format(directory, filename))
@@ -146,24 +145,24 @@ class Base(object):
 		# 	print "ERROR: write({}/{}) with text failed".format(directory, filename)
 		# 	return
 
-	def __preferences__(self):
+	# def __preferences__(self):
 
-		# reading
-		config = self.__read__(self.installDir, self.configFile)
+	# 	# reading
+	# 	config = self.__read__(self.installDir, self.configFile)
 
-		print(config)
+	# 	print(config)
 
-		# writing
-		config.add_section('Section1')
-		config.set('Section1', 'an_int', '15')
-		config.set('Section1', 'a_bool', 'true')
-		config.set('Section1', 'a_float', '3.1415')
-		config.set('Section1', 'baz', 'fun')
-		config.set('Section1', 'bar', 'Python')
-		config.set('Section1', 'foo', '%(bar)s is %(baz)s!')
+	# 	# writing
+	# 	config.add_section('Section1')
+	# 	config.set('Section1', 'an_int', '15')
+	# 	config.set('Section1', 'a_bool', 'true')
+	# 	config.set('Section1', 'a_float', '3.1415')
+	# 	config.set('Section1', 'baz', 'fun')
+	# 	config.set('Section1', 'bar', 'Python')
+	# 	config.set('Section1', 'foo', '%(bar)s is %(baz)s!')
 
-		# Writing our configuration file to 'example.cfg'
-		self.__write__(self.installDir, self.configFile, config)
+	# 	# Writing our configuration file to 'example.cfg'
+	# 	self.__write__(self.installDir, self.configFile, config)
 
 
 

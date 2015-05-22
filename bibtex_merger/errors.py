@@ -1,5 +1,8 @@
-import linecache
-import sys
+import linecache, sys, logging
+
+logger = logging.getLogger(__name__)
+__all__ = [	'Error', 'UserError', 'BibTeXParserError',
+			'ProgramError', 'PrintException'	]
 
 class Error(Exception):
 	pass

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+__all__ = [	'Extension', 'ExtensionError'	]
+
 class Extension(object):
 	def __init__(self, ext=".*", reader=None, writer=None):
 		# set arguments
@@ -40,21 +45,21 @@ class Extension(object):
 		"""
 		return self._writer
 
-	def read(self, *args, **kwargs):
+	def read(self, filename):
 		"""
 		The read method for this Extension object.
 		"""
 		if not self.reader:
 			raise ExtensionError(self.extension, ExtensionError.READ)
-		return self.reader(args, kwargs)
+		return self.reader(filename)
 
-	def write(self, *args, **kwargs):
+	def write(self, filename, content):
 		"""
 		The write method for this Extension object.
 		"""
 		if not self.writer:
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
-		return self.writer(args, kwargs)
+		return self.writer(filename, content)
 
 class ExtensionError(Exception):
 	"""Exception raised for Extension object errors.
