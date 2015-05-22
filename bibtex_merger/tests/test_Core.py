@@ -114,8 +114,10 @@ class TestCore(unittest.TestCase):
 	# __read__
 	###########
 
+	dataDir = "bibtex_merger/tests/data"
+
 	def tRead(self, filename):
-		with open(filename, "r") as f:
+		with open("{}/{}".format(dataDir, filename), "r") as f:
 			return f.read()
 
 		raise Exception
@@ -123,14 +125,14 @@ class TestCore(unittest.TestCase):
 	def test_read(self):
 		c = Core(Extension(ext="txt", reader=self.tRead))
 
-		self.assertEqual(c.__read__("data/sample.txt"), "Sample file with text")
+		self.assertEqual(c.__read__("sample.txt"), "Sample file with text")
 
 	###########
 	# __write__
 	###########
 
 	def tWrite(self, filename, content):
-		with open(filename, "w") as f:
+		with open("{}/{}".format(dataDir, filename), "w") as f:
 			f.write(content)
 			return
 
@@ -139,7 +141,7 @@ class TestCore(unittest.TestCase):
 	def test_writeread(self):
 		c = Core(Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
 
-		f = "data/sample2.txt"
+		f = "sample2.txt"
 		t = "Some random text to insert"
 
 		c.__write__(f, t)
