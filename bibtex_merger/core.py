@@ -4,7 +4,7 @@ from bibtex_merger.extension import *
 from bibtex_merger.errors import *
 
 logger = logging.getLogger(__name__)
-__all__ = [	'Core'	]
+__all__ = [	'Core', 'CoreError'	]
 
 class Core(object):
 	def __init__(self, ext):
@@ -83,9 +83,9 @@ class Core(object):
 			assert bool(re.match(self.extensionObjects[index].reextension, ext)) == True
 
 			return self.extensionObjects[index].read(filename=filename)
-		except ExtensionError:
+		except ValueError:
 			# unsupported extension
-			raise ProgramError("Attempted to read an unsupported file format ({})".format(filename))
+			raise CoreError("Attempted to read an unsupported file format ({})".format(filename))
 
 		# if extension == ".cfg":
 		# 	config = ConfigParser.RawConfigParser()
@@ -115,7 +115,7 @@ class Core(object):
 			return self.extensionObjects[index].write(filename=filename, content=content)
 		except ValueError:
 			# unsupported extension
-			raise ProgramError("Attempted to write an unsupported file format ({})".format(filename))
+			raise CoreError("Attempted to write an unsupported file format ({})".format(filename))
 
 		# if extension == ".cfg":
 		# 	with open("{}/{}".format(directory, filename), 'wb') as f:
@@ -172,8 +172,24 @@ class Core(object):
 	# 	# Writing our configuration file to 'example.cfg'
 	# 	self.__write__(self.installDir, self.configFile, config)
 
+class CoreError(Exception):
+	"""Exception raised for Core object errors.
 
+	Attributes:
+		msg -- the message addressing the error thrown
+	"""
 
+	def __init__(self, msg=None):
+		self._msg = msg
+		
+		if self.msg != None and not isinstance(self.msg, str):
+			raise ValueError("Extension's msg argument must be a str")
 
+	@property
+	def msg(self):
+		return self._msg
+
+	def __str__(self):
+		return self.msg
 
 

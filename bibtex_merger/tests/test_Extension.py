@@ -5,13 +5,18 @@ from bibtex_merger.extension import *
 class TestExtension(unittest.TestCase):
 
 	###########
-	# Extension
+	# Helpers
 	###########
+
 	def tRead(self, filename):
 		return "READING"
 
 	def tWrite(self, filename, content):
 		return "WRITING"
+
+	###########
+	# __init__
+	###########
 
 	def test_Extension_base(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
@@ -60,18 +65,28 @@ class TestExtension(unittest.TestCase):
 	def test_Extension_bad_write(self):
 		self.assertRaises(ValueError, Extension, ext="test", reader=self.tRead, writer="bad writer")
 
+	###########
+	# read
+	###########
+
 	def test_Extension_invalid_ext_read(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
 
 		self.assertRaises(ExtensionError, testExt.read, filename="sample.txt")
+
+	###########
+	# write
+	###########
 
 	def test_Extension_invalid_ext_write(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
 
 		self.assertRaises(ExtensionError, testExt.write, filename="sample.txt", content=None)
 
+class TestExtensionError(unittest.TestCase):
+
 	###########
-	# ExtensionError
+	# Helpers
 	###########
 
 	def extError(self, ext=None, state=None):
@@ -83,6 +98,20 @@ class TestExtension(unittest.TestCase):
 			raise ExtensionError(state=state)
 		else:
 			raise ExtensionError()
+
+	def extErrorAttemptExtChange(self):
+		ee = ExtensionError(ext="test", state=ExtensionError.READ)
+		ee.ext = "blue"
+		raise ee
+
+	def extErrorAttemptStateChange(self):
+		ee = ExtensionError(ext="test", state=ExtensionError.READ)
+		ee.state = -1
+		raise ee
+
+	###########
+	# __init__
+	###########
 
 	def test_ExtensionError_base(self):
 		self.assertRaises(ExtensionError, self.extError, ext="test", state=ExtensionError.READ)
@@ -121,20 +150,18 @@ class TestExtension(unittest.TestCase):
 		except ExtensionError as e:
 			self.assertEqual(str(e), "Attempted to use an unsupported file format (.test)")
 
-	def extErrorAttemptExtChange(self):
-		ee = ExtensionError(ext="test", state=ExtensionError.READ)
-		ee.ext = "blue"
-		raise ee
+	###########
+	# ext
+	###########
 
-	def extErrorAttemptStateChange(self):
-		ee = ExtensionError(ext="test", state=ExtensionError.READ)
-		ee.state = -1
-		raise ee
-
-	def test_ExtensionError_catch_ext_change(self):
+	def test_ExtensionError_ext_change(self):
 		self.assertRaises(AttributeError, self.extErrorAttemptExtChange)
 
-	def test_ExtensionError_catch_state_change(self):
+	###########
+	# state
+	###########
+
+	def test_ExtensionError_state_change(self):
 		self.assertRaises(AttributeError, self.extErrorAttemptStateChange)
 
 

@@ -13,6 +13,19 @@ from bibtex_merger.extension import *
 class TestCore(unittest.TestCase):
 
 	###########
+	# __init__
+	###########
+
+	def test_base1(self):
+		Core(Extension(ext="none"))
+
+	def test_base2(self):
+		Core([Extension(ext="none"), Extension(ext="none")])
+
+	def test_base_bad(self):
+		self.assertRaises(ValueError, Core, "")
+
+	###########
 	# __title__
 	###########
 
@@ -23,9 +36,9 @@ class TestCore(unittest.TestCase):
 		c.__title__(title="Random Title", out=out)
 		output = out.getvalue().strip()
 
-		self.assertEqual(output, """################################################################################
-#                                 RANDOM TITLE                                 #
-################################################################################""")
+		self.assertEqual(output,	"################################################################################\n" +
+									"#                                 RANDOM TITLE                                 #\n" +
+									"################################################################################")
 
 	def test_title2(self):
 		c = Core(Extension(ext="none"))
@@ -34,9 +47,9 @@ class TestCore(unittest.TestCase):
 		c.__title__(title="a" * 100, out=out)
 		output = out.getvalue().strip()
 
-		self.assertEqual(output, """################################################################################
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA #
-################################################################################""")
+		self.assertEqual(output,	"################################################################################\n" +
+									"# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA #\n" +
+									"################################################################################")
 
 	def test_title3(self):
 		c = Core(Extension(ext="none"))
@@ -55,8 +68,8 @@ class TestCore(unittest.TestCase):
 		c.__subtitle__(title="Random Subtitle", out=out)
 		output = out.getvalue().strip()
 
-		self.assertEqual(output, """||                              RANDOM SUBTITLE                               ||
-================================================================================""")
+		self.assertEqual(output,	"||                              RANDOM SUBTITLE                               ||\n" +
+									"================================================================================")
 
 	def test_subtitle2(self):
 		c = Core(Extension(ext="none"))
@@ -65,8 +78,8 @@ class TestCore(unittest.TestCase):
 		c.__subtitle__(title="a" * 100, out=out)
 		output = out.getvalue().strip()
 
-		self.assertEqual(output, """|| AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ||
-================================================================================""")
+		self.assertEqual(output,	"|| AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ||\n" +
+									"================================================================================")
 
 	def test_subtitle3(self):
 		c = Core(Extension(ext="none"))
@@ -127,6 +140,11 @@ class TestCore(unittest.TestCase):
 
 		self.assertEqual(c.__read__("{}/sample.txt".format(self.dataDir)), "Sample file with text")
 
+	def test_read_bad_ext(self):
+		c = Core(Extension(ext="txt", reader=self.tRead))
+
+		self.assertRaises(CoreError, c.__read__, "{}/sample.random".format(self.dataDir))
+
 	###########
 	# __write__
 	###########
@@ -148,6 +166,57 @@ class TestCore(unittest.TestCase):
 		self.assertEqual(c.__read__("{}/{}".format(self.dataDir, f)), t)
 
 		os.remove("{}/{}".format(self.dataDir, f))
+
+	def test_write_bad_ext(self):
+		c = Core(Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
+
+		f = "sample2.random"
+		t = "Some random text to insert"
+
+		self.assertRaises(CoreError, c.__write__, "{}/{}".format(self.dataDir, f), t)
+
+class TestCoreError(unittest.TestCase):
+
+	###########
+	# Helpers
+	###########
+
+	def coreError(self, msg=-1):
+		if msg == -1:
+			raise CoreError()
+		else:
+			raise CoreError(msg)
+
+	def coreErrorAttemptMsgChange(self):
+		ce = CoreError(msg="red")
+		ce.msg = "blue"
+		raise ee
+
+	###########
+	# __init__
+	###########
+
+	def test_CoreError_base(self):
+		self.assertRaises(CoreError, self.coreError, msg="red")
+		self.assertRaises(CoreError, self.coreError, msg=None)
+		self.assertRaises(CoreError, self.coreError)
+
+	def test_CoreError_bad_msg(self):
+		self.assertRaises(ValueError, self.coreError, msg=12345)
+
+	def test_CoreError_catching(self):
+		msg = "test"
+		try:
+			raise CoreError(msg=msg)
+		except CoreError as e:
+			self.assertEqual(str(e), msg)
+
+	###########
+	# msg
+	###########
+
+	def test_CoreError_msg_change(self):
+		self.assertRaises(AttributeError, self.coreErrorAttemptMsgChange)
 
 if __name__ == '__main__':
 	unittest.main()
