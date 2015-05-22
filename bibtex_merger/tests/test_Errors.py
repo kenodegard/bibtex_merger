@@ -7,8 +7,7 @@ if python2:
 else:
     from io import StringIO
 
-from bibtex_merger.core import *
-from bibtex_merger.extension import *
+from bibtex_merger.errors import *
 
 class TestErrors(unittest.TestCase):
 	def test_base(self):

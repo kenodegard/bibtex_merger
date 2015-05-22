@@ -1,7 +1,7 @@
 import linecache, sys, logging
 
 logger = logging.getLogger(__name__)
-__all__ = [	'Error', 'UserError', 'BibTeXParserError',
+__all__ = [	'UserError', 'BibTeXParserError',
 			'ProgramError', 'PrintException'	]
 
 class UserError(Exception):
