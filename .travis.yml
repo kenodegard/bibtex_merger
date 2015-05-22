@@ -41,11 +41,11 @@ install:
   # end Fuzzy dependency
   ##########
   # start pre gmpy2 dependency
-  - mkdir static
+  - mkdir $HOME/static
 
   - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
   - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
-  - ./configure --prefix=$HOME/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --enable-fat
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
   - make
   - make check
   - sudo make install
@@ -53,7 +53,7 @@ install:
 
   - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
   - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
-  - ./configure --prefix=$HOME/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/bibtex_merger/tmp/static
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
   - make
   - make check
   - sudo make install
@@ -61,7 +61,7 @@ install:
   
   - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
   - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
-  - ./configure --prefix=$HOME/bibtex_merger/tmp/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/bibtex_merger/tmp/static --with-mpfr=$HOME/bibtex_merger/tmp/static
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
   - make
   - make check
   - sudo make install
@@ -71,7 +71,7 @@ install:
   # start gmpy2 dependency
   - wget https://pypi.python.org/packages/source/g/gmpy2/gmpy2-2.0.5.zip
   - unzip gmpy2-2.0.5.zip && cd gmpy2-2.0.5
-  - python setup.py build_ext --static=$HOME/bibtex_merger/tmp/static
+  - python setup.py build_ext --static=$HOME/static
   - sudo python setup.py install
   - cd ..
   # end gmpy2 dependency
