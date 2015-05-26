@@ -71,7 +71,7 @@ install:
   # start gmpy2 dependency
   - wget https://pypi.python.org/packages/source/g/gmpy2/gmpy2-2.0.5.zip
   - unzip gmpy2-2.0.5.zip && cd gmpy2-2.0.5
-  - python setup.py build_ext --static=$HOME/static
+  - python setup.py build_ext --prefix=$HOME/static
   - sudo python setup.py install
   - cd ..
   # end gmpy2 dependency
