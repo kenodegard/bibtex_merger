@@ -78,8 +78,8 @@ install:
 
   ##########
   # start gmpy2 dependency
-  - sudo apt-get install libgmp-dev, libmpfr-dev, libmpc-dev
-  - sudo pip install gmpy2
+  - apt-get install libgmp, libmpfr, libmpc
+  - pip install gmpy2
   # end gmpy2 dependency
   ##########
   - cd ..
