@@ -1,16 +1,19 @@
 language: python
+# os:
+#   - linux
+#   - osx
 matrix:
   include:
     - python: "2.7"
       env: TEST_SUITE=suite_2_7
-    - python: "3.2"
-      env: TEST_SUITE=suite_3_2
-    - python: "3.3"
-      env: TEST_SUITE=suite_3_3
-    - python: "3.4"
-      env: TEST_SUITE=suite_3_4
-    - python: "pypy"
-      env: TEST_SUITE=suite_pypy
+    # - python: "3.2"
+    #   env: TEST_SUITE=suite_3_2
+    # - python: "3.3"
+    #   env: TEST_SUITE=suite_3_3
+    # - python: "3.4"
+    #   env: TEST_SUITE=suite_3_4
+    # - python: "pypy"
+    #   env: TEST_SUITE=suite_pypy
 install:
   - if [[ $TEST_SUITE == suite_3_4 ]]; then
         pip install sphinx;
@@ -39,35 +42,36 @@ install:
   - python setup.py install
   - cd ..
   # end Fuzzy dependency
-  # ##########
-  # # start pre gmpy2 dependency
-  # - mkdir $HOME/static
+  ##########
+  # start pre gmpy2 dependency
+  - mkdir $HOME/static
 
-  # - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-  # - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
-  # - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
+  - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
+  - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
+  - make
+  - make check
+  - sudo make install
+  - cd ..
 
-  # - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
-  # - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
-  # - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
+  - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
+  - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
+  - make
+  - make check
+  - sudo make install
+  - cd ..
   
-  # - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
-  # - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
-  # - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
-  # # end pre gmpy2 dependency
-  # ##########
+  - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
+  - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
+  - ./configure --prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
+  - make
+  - make check
+  - sudo make install
+  - cd ..
+  # end pre gmpy2 dependency
+  ##########
+
   # # start gmpy2 dependency
   # - wget https://pypi.python.org/packages/source/g/gmpy2/gmpy2-2.0.5.zip
   # - unzip gmpy2-2.0.5.zip && cd gmpy2-2.0.5
@@ -78,7 +82,7 @@ install:
 
   ##########
   # start gmpy2 dependency
-  - sudo apt-get install libgmp, libmpfr, libmpc
+  # - sudo apt-get install libgmp3-dev, libmpfr, libmpc
   - pip install gmpy2
   # end gmpy2 dependency
   ##########
