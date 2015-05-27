@@ -50,7 +50,8 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose dateutil pandas statsmodels
   # - conda install --yes -c dan_blanchard python-coveralls nose-cov
 
-  - sudo apt-get install python-sklearn
+  # - sudo apt-get install python-sklearn
+  - pip install scikit-learn
   # end other supporting dependencies
 
   ##########
