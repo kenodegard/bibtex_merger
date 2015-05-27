@@ -44,9 +44,6 @@ install:
   # end Fuzzy dependency
   ##########
 
-  - sudo apt-get update
-  - sudo apt-get install build-essential
-
   # start pre gmpy2 dependency
   - mkdir $HOME/static
 
@@ -74,8 +71,6 @@ install:
   - sudo make install
   - cd ..
   # end pre gmpy2 dependency
-
-  - sudo apt-get install gcc
 
   ##########
 
