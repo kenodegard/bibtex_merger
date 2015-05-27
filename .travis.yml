@@ -103,15 +103,16 @@ install:
   - pip install Fuzzy
   - pip install numpy
 
-  - sudo apt-get install gfortran
-  - sudo apt-get install libopenblas-dev
+  # - sudo apt-get install gfortran
+  # - sudo apt-get install libopenblas-dev
   # - sudo apt-get install liblapack-dev
 
-  - pip install scipy
-  - pip install scikit-learn
+  # - pip install scipy
+  # - pip install scikit-learn
 
-  # - sudo apt-get install python-numpy
+  - sudo apt-get install python-numpy
   # - sudo apt-get install python-scipy
+  - sudo apt-get build-dep scipy
   # - sudo apt-get install python-matplotlib
   # - sudo apt-get install ipython
   # - sudo apt-get install ipython-notebook
