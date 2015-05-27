@@ -91,7 +91,7 @@ install:
 
   - sudo apt-get install libgmp10
   - sudo apt-get install libmpfr4
-  - sudo apt-get install libmpc3
+  - sudo apt-get install mpc
   - sudo apt-get install python-gmpy2-common
 
   ##########
