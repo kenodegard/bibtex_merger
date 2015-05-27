@@ -1,7 +1,8 @@
 import bibtexparser as bp
 import Levenshtein as le
 import fuzzy as fz
-import gmpy2 as ch
+import scipy.misc as ch
+# import gmpy2 as ch
 
 import re, csv, os, threading, numpy, logging
 from sys import argv

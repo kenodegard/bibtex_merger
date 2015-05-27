@@ -47,29 +47,29 @@ install:
   # start pre gmpy2 dependency
   # - mkdir $HOME/static
 
-  - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-  - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
-  - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
-  - make
-  - make check
-  - sudo make install
-  - cd ..
+  # - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
+  # - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
+  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
+  # - make
+  # - make check
+  # - sudo make install
+  # - cd ..
 
-  - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
-  - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
-  - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
-  - make
-  - make check
-  - sudo make install
-  - cd ..
+  # - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
+  # - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
+  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
+  # - make
+  # - make check
+  # - sudo make install
+  # - cd ..
   
-  - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
-  - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
-  - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
-  - make
-  - make check
-  - sudo make install
-  - cd ..
+  # - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
+  # - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
+  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
+  # - make
+  # - make check
+  # - sudo make install
+  # - cd ..
   # end pre gmpy2 dependency
 
   # ##########
@@ -93,7 +93,7 @@ install:
   # - sudo apt-get install libmpfr4
   # - sudo apt-get install mpc
   # - sudo apt-get install python-gmpy2-common
-  - pip install gmpy2
+  # - pip install gmpy2
 
   ##########
   - cd ..
