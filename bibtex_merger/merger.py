@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 __all__ = [	'BibTeX_Merger'	]
 
 class BibTeX_Merger(Core):
-	def __init__(self, numFiles=-1, importDir='.', killLevel='warning', shallowDeepCompDiv=3.4, summedPercentErrorDiv=[0.4, 1.0], learningModel='fminunc', doLearning='remakeModel'):
+	def __init__(self, importDir='.', numFiles=-1, killLevel='warning', shallowDeepCompDiv=3.4, summedPercentErrorDiv=[0.4, 1.0], learningModel='fminunc', doLearning='remakeModel'):
 		super(BibTeX_Merger, self).__init__(self.__initExtensions__())
 
 		self.__initConstants__()
@@ -272,7 +272,7 @@ class BibTeX_Merger(Core):
 			raise MergerError("No files were imported. Need at least one.")
 
 		# determine whether we are only reading in the first subset or whether we are reading in the maximum
-		self.numFiles = maxNumFiles if self.numFiles < 0 else min(self.numFiles, maxNumFiles)
+		self._numFiles = maxNumFiles if self.numFiles < 0 else min(self.numFiles, maxNumFiles)
 
 		# self.db = None
 		self.db = bp.bibdatabase.BibDatabase()
@@ -294,13 +294,13 @@ class BibTeX_Merger(Core):
 
 			# try to import the specified file and parse
 			try:
-				temp_db = self.__read__(self.originalDir, filename)
+				temp_db = self.__read__("{}/{}".format(self.importDir, filename))
 
 				# append all ids in the entries dictionary with this file's unique tag
 				# s.t. all resulting ids are entirely unique w/r to all of the imported files
 				for i, e in enumerate(temp_db.entries):
 					if self.id not in e.keys():
-						raise BibTeXParserError("'{}' key not in this entry ({})".format(self.id, e.keys()))
+						raise MergerError("'{}' key not in this entry ({})".format(self.id, e.keys()))
 
 					e[self.id] = "{}_{}".format(baseFilename, e[self.id])
 
@@ -314,7 +314,7 @@ class BibTeX_Merger(Core):
 
 				self.tags += baseFilename
 			except ValueError:
-				self.logger.warning("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
+				raise MergerError("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
 
 			if not self.db:
 				self.db = temp_db

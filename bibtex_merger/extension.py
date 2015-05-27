@@ -59,7 +59,7 @@ class Extension(object):
 			raise ExtensionError(self.extension, ExtensionError.READ)
 
 		ext = os.path.splitext(filename)[1]
-		if not re.match(self.reextension, ext):
+		if not (re.match(self.reextension, ext) or self.extension == ext):
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.reader(filename)
@@ -72,7 +72,7 @@ class Extension(object):
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
 
 		ext = os.path.splitext(filename)[1]
-		if not re.match(self.reextension, ext):
+		if not (re.match(self.reextension, ext) or self.extension == ext):
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.writer(filename, content)

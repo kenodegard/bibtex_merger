@@ -11,4 +11,4 @@ from bibtex_merger.merger import *
 
 class TestBibTeX_Merger(unittest.TestCase):
 	def test_base(self):
-		BibTeX_Merger()
+		BibTeX_Merger("bibtex_merger/tests/data")

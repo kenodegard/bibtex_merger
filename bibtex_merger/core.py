@@ -6,16 +6,15 @@ logger = logging.getLogger(__name__)
 __all__ = [	'Core', 'CoreError'	]
 
 class Core(object):
-	"""The core program. Processes and deals with the base functionality 
+	"""The core program. Processes and deals with the base functionality
 	
 	Attributes:
 		ext	--	The Extension objects that this Core accepts. Ordered from
 				most specific to generic extensions since the first match
 				found for a filename is the one used.
-		prefFile -- The filename for the preferences file. Default: 'pref.cfg'
-		prefExt -- The filename extension for the preferences file. Default: r'cfg'
+		prefFile -- The filename for the preferences file. Default: "pref.cfg"
 	"""
-	def __init__(self, ext, prefFile='pref.cfg', prefExt=r'cfg'):
+	def __init__(self, ext, prefFile='pref.cfg'):
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]
 		elif isinstance(ext, list):
@@ -32,17 +31,16 @@ class Core(object):
 
 			def prefRead(filename):
 				config = ConfigParser.RawConfigParser()
-				config.read(filename)
+				config.read(self._preferencesFile)
 				return config
 			def prefWrite(filename, content):
-				with open(filename, 'wb') as f:
-					return content.write(f)
+				with open(self._preferencesFile, 'wb') as f:
+					return self.preferences.write(f)
 
-			self._preferencesFile	= prefFile
-			# self._extensionObjects	= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)] + self._extensionObjects
-			self._extensionObjects	+= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)]
+			self._preferencesFile	=	prefFile
+			self._extensionObjects	+=	[Extension(ext=r'^' + re.escape(prefFile) + r'$', reader=prefRead, writer=prefWrite)]
 		else:
-			self._preferencesFile	= None
+			self._preferencesFile	=	None
 
 		self._extensionRegexs	= [x.reextension for x in self.extensionObjects]
 		self._extensionPatters	= [x.extension   for x in self.extensionObjects]
