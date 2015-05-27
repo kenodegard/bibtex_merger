@@ -40,43 +40,80 @@ class BibTeX_Merger(Core):
 		# If set to -1 (default) then all files in the data/0_original/ directory will be used
 		if not isinstance(numFiles, int):
 			raise ValueError("BibTeX_Merger numFiles argument requires int not ({})".format(type(numFiles)))
-		self.numFiles = numFiles
+		self._numFiles = numFiles
 
 		if not isinstance(importDir, str) and os.path.isdir(importDir):
 			raise ValueError("BibTeX_Merger importDir argument requires str to a directory not ({} -> {})".format(type(importDir), importDir))
-		self.importDir = importDir
+		self._importDir = importDir
 
 		# Verbose level that optionally prints more debugging code'
 		if not isinstance(killLevel, str) and killLevel in self.killLevel:
 			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevel), type(killLevel), killLevel))
-		self.killLevel = self.killLevel[killLevel]
+		self._killLevel = self.killLevel[killLevel]
 
 		# The manually decided breakpoints
 		if not (isinstance(shallowDeepCompDiv, int) or isinstance(shallowDeepCompDiv, float)) and shallowDeepCompDiv < 0:
 			raise ValueError("BibTeX_Merger shallowDeepCompDiv argument must be int|float > 0 not ({} -> {})".format(type(shallowDeepCompDiv), shallowDeepCompDiv))
-		self.shallowDeepCompDiv = shallowDeepCompDiv
+		self._shallowDeepCompDiv = shallowDeepCompDiv
 
 		# Lower and Upper breakpoints, everything lower than lower is assumed duplicate,
 		# everything greater than upper is assumed unique
 		if not isinstance(summedPercentErrorDiv, list) and not all(isinstance(x, int) or isinstance(x, float) for x in summedPercentErrorDiv) and not all(x > 0 for x in summedPercentErrorDiv):
 			raise ValueError("BibTeX_Merger summedPercentErrorDiv argument must be a list of int|float > 0 not ({} -> {})".format(type(summedPercentErrorDiv), summedPercentErrorDiv))
-		self.summedPercentErrorDiv = summedPercentErrorDiv
+		self._summedPercentErrorDiv = summedPercentErrorDiv
 
 		# Sample fminunc theta
 		# self.theta = numpy.array([0.419, 1.036, -3.089,  0.025, -0.387,  0.943,  0.625, -3.326, -2.256, -1.798, 0.536, 1.777,  0.713, -0.026, -1.271,  0.215,  1.444, -12.533, -9.778, -2.590, -1.522])
 		# Sample glmfit theta
-		self.theta = numpy.array([200.064, 1.192, -3.152, 33.034, 0.000, 0.985, 80.515, -3.527, -2.330, -1.916, 0.006, 1.863, 0.149, -0.108, -1.397, 87.715, 1.519, -13.372, -10.149, -2.609, -1.637])
+		self._theta = numpy.array([200.064, 1.192, -3.152, 33.034, 0.000, 0.985, 80.515, -3.527, -2.330, -1.916, 0.006, 1.863, 0.149, -0.108, -1.397, 87.715, 1.519, -13.372, -10.149, -2.609, -1.637])
 
 		# Learning model to use
 		# available options: fminunc | glmfit
-		self.learningModel = self.learningModels[learningModel]
+		if not isinstance(learningModel, str) and learningModel in self.learningModel:
+			raise ValueError("BibTeX_Merger learningModel argument must be {} not ({} -> {})".format("|".join(self.learningModel), type(learningModel), learningModel))
+		self._learningModel = self.learningModels[learningModel]
+
 		# What to do in this instance of code execution
 		# available options: off | remakeData | remakeModel
-		self.doLearning = self.doLearnings[doLearning]
+		if not isinstance(doLearning, str) and doLearning in self.doLearning:
+			raise ValueError("BibTeX_Merger doLearning argument must be {} not ({} -> {})".format("|".join(self.doLearning), type(doLearning), doLearning))
+		self._doLearning = self.doLearnings[doLearning]
 
 		# self.__run__()
 
 		return
+
+	@property
+	def numFiles(self):
+		return self._numFiles
+
+	@property
+	def importDir(self):
+		return self._importDir
+	
+	@property
+	def killLevel(self):
+		return self._killLevel
+	
+	@property
+	def shallowDeepCompDiv(self):
+		return self._shallowDeepCompDiv
+	
+	@property
+	def summedPercentErrorDiv(self):
+		return self._summedPercentErrorDiv
+
+	@property
+	def theta(self):
+		return self._theta
+
+	@property
+	def learningModel(self):
+		return self._learningModel
+
+	@property
+	def doLearning(self):
+		return self._doLearning
 
 	def __initExtensions__(self):
 		def cfgRead(filename):
@@ -115,17 +152,6 @@ class BibTeX_Merger(Core):
 		csvExt = Extension(ext=r'csv', reader=csvRead, writer=csvWrite)
 
 		return [cfgExt, bibExt, csvExt]
-
-	def __run__(self):
-		self.Import()
-		self.PreProcessor()
-		self.Bagging()
-		self.ShallowCompare()
-
-		if self.doLearning != self.doLearnings['off']:
-			self.Learner()
-
-		return
 
 	def __initConstants__(self):
 		self.logger = logging.getLogger(__name__)
@@ -222,6 +248,17 @@ class BibTeX_Merger(Core):
 
 		# self.reRemComment = re.compile(r'@COMMENT.*', re.IGNORECASE)
 		# self.reSplit=re.compile(r'(?=(?:' + '|'.join(["@" + et for et in self.entry_types.keys()]) + r'))',re.IGNORECASE)
+
+		return
+
+	def __run__(self):
+		self.Import()
+		self.PreProcessor()
+		self.Bagging()
+		self.ShallowCompare()
+
+		if self.doLearning != self.doLearnings['off']:
+			self.Learner()
 
 		return
 
