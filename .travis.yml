@@ -103,7 +103,7 @@ install:
   - pip install Fuzzy
   - pip install numpy
 
-  # - sudo apt-get install gfortran
+  - sudo apt-get install gfortran
   - sudo apt-get install libopenblas-dev
   # - sudo apt-get install liblapack-dev
 
