@@ -93,7 +93,7 @@ install:
   - sudo apt-get install libmpfr4
   - sudo apt-get install mpc
   # - sudo apt-get install python-gmpy2-common
-  - pop install gmpy2
+  - pip install gmpy2
 
   ##########
   - cd ..
