@@ -48,7 +48,7 @@ class BibTeX_Merger(Core):
 
 		# Verbose level that optionally prints more debugging code'
 		if not isinstance(killLevel, str) and killLevel in self.killLevel:
-			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevel), type(killLevel), killLevel)
+			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevel), type(killLevel), killLevel))
 		self.killLevel = self.killLevel[killLevel]
 
 		# The manually decided breakpoints
