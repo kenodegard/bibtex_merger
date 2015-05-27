@@ -90,7 +90,7 @@ install:
 
   # start gmpy2 dependency
   # - sudo apt-get install libgmp3-dev, libmpfr, libmpc
-  # - pip install gmpy2
+  - pip install gmpy2
   # end gmpy2 dependency
 
   ##########
