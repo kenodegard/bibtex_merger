@@ -1,13 +1,18 @@
 import bibtexparser as bp
+
 import Levenshtein as le
 import fuzzy as fz
+
+import numpy
+
+import scipy.misc as ch
+
 from sklearn import linear_model
 from sklearn.cross_validation import train_test_split
-from scipy import misc as ch
-# import scipy.misc as ch
+# from scipy import misc as ch
 # import gmpy2 as ch
 
-import re, csv, os, threading, numpy, logging
+import re, csv, os, threading, logging
 from sys import argv
 from datetime import *
 from collections import OrderedDict
