@@ -22,29 +22,26 @@ install:
   - pip install coverage
 
   ##########
+  
   # start bibtex_cleanup_parser dependency
   - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz
   - tar -xvf master.tar.gz && cd bibtex_cleanup_parser-master
   - python setup.py install
   - cd ..
   # end bibtex_cleanup_parser dependency
+
   ##########
-  # start Levenshtein dependency
+
+  # start other supporting dependencies
   - pip install python-Levenshtein
-  # end Levenshtein dependency
-  ##########
-  # start Fuzzy dependency
   - pip install Fuzzy
-  # end Fuzzy dependency
-  ##########
-  # start numpy dependency
   - sudo apt-get install python-numpy
-  # end numpy dependency
-  ##########
-  # start scipy dependency
   - sudo apt-get install python-scipy
-  # end scipy dependency
+  - pip install scikit-learn
+  # end other supporting dependencies
+
   ##########
+
   - python setup.py install
 script:
   - nosetests --with-coverage  --cover-erase --cover-package=bibtex_merger
