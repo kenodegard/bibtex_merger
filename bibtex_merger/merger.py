@@ -16,7 +16,7 @@ import re, csv, os, threading, logging
 from sys import argv
 from datetime import *
 from collections import OrderedDict
-import ConfigParser, logging
+import ConfigParser
 
 from bibtex_merger.core import *
 from bibtex_merger.extension import *

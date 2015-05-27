@@ -17,20 +17,35 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_base1(self):
-		Core(Extension(ext="none"))
+		Core(ext=Extension(ext="none"))
 
 	def test_base2(self):
-		Core([Extension(ext="none"), Extension(ext="none")])
+		Core(ext=[Extension(ext="none"), Extension(ext="none")])
 
-	def test_base_bad(self):
-		self.assertRaises(ValueError, Core, "")
+	def test_base_bad1(self):
+		self.assertRaises(ValueError, Core, ext="")
+
+	def test_base_bad2(self):
+		self.assertRaises(ValueError, Core, ext=["", 1234])
+
+	def test_base_bad3(self):
+		self.assertRaises(ValueError, Core, ext=[Extension(ext="none"), 1234])
+
+	def test_prefFile_good(self):
+		Core(Extension(ext="none"))
+		Core(Extension(ext="none"), prefFile=None)
+		Core(Extension(ext="none"), prefFile="pref.cfg")
+
+	def test_prefFile_bad(self):
+		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), prefFile=12345)
+		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), prefFile=Extension(ext="none"))
 
 	###########
 	# __title__
 	###########
 
 	def test_title1(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		c.__title__(title="Random Title", out=out)
@@ -41,7 +56,7 @@ class TestCore(unittest.TestCase):
 									"################################################################################")
 
 	def test_title2(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		c.__title__(title="a" * 100, out=out)
@@ -52,7 +67,7 @@ class TestCore(unittest.TestCase):
 									"################################################################################")
 
 	def test_title3(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		self.assertRaises(ValueError, c.__title__, title=123, out=out)
@@ -62,7 +77,7 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_subtitle1(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		c.__subtitle__(title="Random Subtitle", out=out)
@@ -72,7 +87,7 @@ class TestCore(unittest.TestCase):
 									"================================================================================")
 
 	def test_subtitle2(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		c.__subtitle__(title="a" * 100, out=out)
@@ -82,7 +97,7 @@ class TestCore(unittest.TestCase):
 									"================================================================================")
 
 	def test_subtitle3(self):
-		c = Core(Extension(ext="none"))
+		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
 
 		self.assertRaises(ValueError, c.__subtitle__, title=123, out=out)
@@ -92,14 +107,14 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_extensionNames1(self):
-		c = Core(Extension(ext="test"), None)
+		c = Core(ext=Extension(ext="test"), prefFile=None)
 
 		self.assertEqual(c.extensionPatterns, [r"\.test"])
 
 	def test_extensionNames2(self):
-		c = Core([	Extension(ext="test1"),
-					Extension(ext="test2"),
-					Extension(ext="test3")	], None)
+		c = Core(ext=[	Extension(ext="test1"),
+						Extension(ext="test2"),
+						Extension(ext="test3")	], prefFile=None)
 
 		self.assertEqual(c.extensionPatterns, [r"\.test1", r"\.test2", r"\.test3"])
 
@@ -108,15 +123,15 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_extensionObjects1(self):
-		c = Core(Extension(ext="test"), None)
+		c = Core(ext=Extension(ext="test"), prefFile=None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
 		self.assertEqual(c.extensionObjects[0].extension, r"\.test")
 
 	def test_extensionObjects2(self):
-		c = Core([	Extension(ext="test1"),
-					Extension(ext="test2"),
-					Extension(ext="test3")	], None)
+		c = Core(ext=[	Extension(ext="test1"),
+						Extension(ext="test2"),
+						Extension(ext="test3")	], prefFile=None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
 		self.assertEqual(c.extensionObjects[0].extension, r"\.test1")
@@ -136,12 +151,12 @@ class TestCore(unittest.TestCase):
 		raise Exception
 
 	def test_read(self):
-		c = Core(Extension(ext="txt", reader=self.tRead))
+		c = Core(ext=Extension(ext="txt", reader=self.tRead))
 
 		self.assertEqual(c.__read__("{}/sample.txt".format(self.dataDir)), "Sample file with text")
 
 	def test_read_bad_ext(self):
-		c = Core(Extension(ext="txt", reader=self.tRead))
+		c = Core(ext=Extension(ext="txt", reader=self.tRead))
 
 		self.assertRaises(CoreError, c.__read__, "{}/sample.random".format(self.dataDir))
 
@@ -156,7 +171,7 @@ class TestCore(unittest.TestCase):
 		raise Exception
 
 	def test_writeread(self):
-		c = Core(Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
+		c = Core(ext=Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
 
 		f = "sample2.txt"
 		t = "Some random text to insert"
@@ -168,7 +183,7 @@ class TestCore(unittest.TestCase):
 		os.remove("{}/{}".format(self.dataDir, f))
 
 	def test_write_bad_ext(self):
-		c = Core(Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
+		c = Core(ext=Extension(ext="txt", reader=self.tRead, writer=self.tWrite))
 
 		f = "sample2.random"
 		t = "Some random text to insert"
