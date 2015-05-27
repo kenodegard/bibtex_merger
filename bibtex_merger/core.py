@@ -13,7 +13,7 @@ class Core(object):
 				most specific to generic extensions since the first match
 				found for a filename is the one used.
 	"""
-	def __init__(self, ext):
+	def __init__(self, ext, prefFile='pref.cfg', prefExt=r'cfg'):
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]
 		elif isinstance(ext, list):
@@ -23,6 +23,21 @@ class Core(object):
 				raise ValueError("Core ext attribute only accepts Extensions, you have included a non-Extension object")
 		else:
 			raise ValueError("Core expects either a single Extension or a list of Extensions")
+
+		if prefFile != None:
+			if not isinstance(prefFile, str):
+				raise ValueError("Core prefFile attribute must be a file name of str not ({} -> {})".format(type(prefFile), prefFile))
+
+			def prefRead(filename):
+				config = ConfigParser.RawConfigParser()
+				config.read(filename)
+				return config
+			def prefWrite(filename, content):
+				with open(filename, 'wb') as f:
+					return content.write(f)
+
+			self._preferencesFile	= prefFile
+			self._extensionObjects	= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)] + self._extensionObjects
 
 		self._extensionRegexs	= [x.reextension for x in self.extensionObjects]
 		self._extensionPatters	= [x.extension   for x in self.extensionObjects]
@@ -82,7 +97,6 @@ class Core(object):
 		return
 
 	def __read__(self, filename):
-
 		ext = os.path.splitext(filename)[1]
 
 		try:
@@ -96,23 +110,7 @@ class Core(object):
 			# unsupported extension
 			raise CoreError("Attempted to read an unsupported file format ({})".format(filename))
 
-		# if extension == ".cfg":
-		# 	config = ConfigParser.RawConfigParser()
-		# 	config.read(filename)
-		
-		# 	return config
-		# elif extension == ".bib":
-		# 	with open("{}/{}".format(directory, filename)) as f:
-		# 		return bp.load(f, parser=self.parser)
- 
-		# elif extension == ".csv":
-		# 	with open("{}/{}".format(directory, filename)) as f:
-		# 		return [e for e in csv.reader(f)]
-
 	def __write__(self, filename, content):
-		# if not os.path.exists(directory):
-		# 	os.makedirs(directory)
-
 		ext = os.path.splitext(filename)[1]
 
 		try:
@@ -126,43 +124,17 @@ class Core(object):
 			# unsupported extension
 			raise CoreError("Attempted to write an unsupported file format ({})".format(filename))
 
-		# if extension == ".cfg":
-		# 	with open("{}/{}".format(directory, filename), 'wb') as f:
-		# 		content.write(f)
-		# 		return
+	@property
+	def preferences(self):
+	    return self._preferences
 
-		# 	raise ProgramError("Something went wrong with writing ({}/{})".format(directory, filename))
+	def __preferencesR__(self):
+		try:
+			return self.preferences
+		except NameError:
+			self._preferences = self.__read__(self.preferencesFile)
 
-		# elif extension == ".bib":
-		# 	raise ProgramError("BIBs aren't supposed to be made (yet)")
-
-		# elif extension == ".csv":
-		# 	with open("{}/{}".format(directory, filename), 'wb') as f:
-		# 		filecontent = csv.writer(f)
-
-		# 		if type(content) != None:
-		# 			if type(content) == type([]):
-		# 				if len(content) > 0:
-		# 					if type(content[0]) == type([]):
-		# 						# Matrix, List of lists
-		# 						filecontent.writerows(content)
-		# 					elif type(content[0]) != type([]):
-		# 						# Vector, List
-		# 						filecontent.writerow(content)
-		# 			return
-
-		# 		raise ProgramError("CSV content has bad format, write failed")
-
-		# elif extension == ".txt":
-		# 	with open("{}/{}".format(directory, filename), 'a') as f:
-		# 		f.write(text)
-
-		# 		return
-
-		# 	print "ERROR: write({}/{}) with text failed".format(directory, filename)
-		# 	return
-
-	# def __preferences__(self):
+	def __preferencesW__(self):
 
 	# 	# reading
 	# 	config = self.__read__(self.installDir, self.configFile)

@@ -5,22 +5,22 @@ __all__ = [	'Extension', 'ExtensionError'	]
 
 class Extension(object):
 	def __init__(self, ext=r".*", reader=None, writer=None):
-		# set arguments
-		self._extension = ext
-		self._reader = reader
-		self._writer = writer
-
-		if not isinstance(self._extension, str):
-			raise ValueError("Extension's ext argument ({}) must be a str".format(self._extension))
-		self._extension = re.compile(r"\." + self._extension)
-
+		# assert valid extension
+		if not isinstance(ext, str):
+			raise ValueError("Extension's ext argument ({}) must be a str".format(ext))
+		
 		# assert valid reader argument
-		if self._reader and not hasattr(self._reader, '__call__'):
-			raise ValueError("Extension's reader argument ({}) must be a method reference".format(self._reader))
+		if reader and not hasattr(reader, '__call__'):
+			raise ValueError("Extension's reader argument ({}) must be a method reference".format(reader))
 
 		# assert valid writer argument
-		if self._writer and not hasattr(self._writer, '__call__'):
-			raise ValueError("Extension's writer argument ({}) must be a method reference".format(self._writer))
+		if writer and not hasattr(writer, '__call__'):
+			raise ValueError("Extension's writer argument ({}) must be a method reference".format(writer))
+
+		# set  arguments
+		self._extension = re.compile(r"\." + ext)
+		self._reader = reader
+		self._writer = writer
 		
 
 	@property

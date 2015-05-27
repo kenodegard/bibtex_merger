@@ -116,15 +116,6 @@ class BibTeX_Merger(Core):
 		return self._doLearning
 
 	def __initExtensions__(self):
-		def cfgRead(filename):
-			config = ConfigParser.RawConfigParser()
-			config.read(filename)
-			return config
-		def cfgWrite(filename, content):
-			with open(filename, 'wb') as f:
-				return content.write(f)
-		cfgExt = Extension(ext=r'cfg', reader=cfgRead, writer=cfgWrite)
-
 		def bibRead(filename):
 			with open(filename, 'r') as f:
 				return bp.load(f, parser=self.parser)
@@ -151,7 +142,7 @@ class BibTeX_Merger(Core):
 				raise ProgramError("CSV content has bad format, write failed")
 		csvExt = Extension(ext=r'csv', reader=csvRead, writer=csvWrite)
 
-		return [cfgExt, bibExt, csvExt]
+		return [bibExt, csvExt]
 
 	def __initConstants__(self):
 		self.logger = logging.getLogger(__name__)
