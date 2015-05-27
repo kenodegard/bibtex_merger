@@ -40,17 +40,18 @@ install:
   # - sudo apt-get install python-scipy
   # - pip install scikit-learn
 
-  - sudo apt-get install build-essential
-  - sudo apt-get install python-dev
-  - sudo apt-get install python-setuptools
+  # - sudo apt-get install build-essential
+  # - sudo apt-get install python-dev
+  # - sudo apt-get install python-setuptools
 
-  - sudo apt-get install libopenblas-dev
+  # - sudo apt-get install libopenblas-dev
 
-  - sudo update-alternatives --set libblas.so.3 /usr/lib/openblas-base/libopenblas.so.0
-  - sudo update-alternatives --set liblapack.so.3 /usr/lib/lapack/liblapack.so.3
+  # - sudo update-alternatives --set libblas.so.3 /usr/lib/openblas-base/libopenblas.so.0
+  # - sudo update-alternatives --set liblapack.so.3 /usr/lib/lapack/liblapack.so.3
 
   - sudo apt-get install python-numpy
   - sudo apt-get install python-scipy
+  - sudo apt-get install python-sklearn
   # - sudo apt-get install libatlas-dev
   # - sudo apt-get install libatlas3gf-base
   # - sudo apt-get remove libatlas3gf-base libatlas-dev
