@@ -18,7 +18,12 @@ class Extension(object):
 			raise ValueError("Extension's writer argument ({}) must be a method reference".format(writer))
 
 		# set  arguments
-		self._extension = re.compile(r"\." + ext)
+		if re.match(r'^\^.*\$$', ext):
+			# this is a complete filename, compile as-is
+			self._extension = re.compile(ext)
+		else:
+			# this is only the extension, append '.'
+			self._extension = re.compile(r'\.' + ext + r'$')
 		self._reader = reader
 		self._writer = writer
 		
@@ -58,8 +63,8 @@ class Extension(object):
 		if not self.reader:
 			raise ExtensionError(self.extension, ExtensionError.READ)
 
-		ext = os.path.splitext(filename)[1]
-		if not (re.match(self.reextension, ext) or self.extension == ext):
+		if not (re.search(self.reextension, filename) or self.extension == filename):
+			print self.extension, filename
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.reader(filename)
@@ -71,8 +76,7 @@ class Extension(object):
 		if not self.writer:
 			raise ExtensionError(self.extension, ExtensionError.WRITE)
 
-		ext = os.path.splitext(filename)[1]
-		if not (re.match(self.reextension, ext) or self.extension == ext):
+		if not (re.search(self.reextension, filename) or self.extension == filename):
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.writer(filename, content)
@@ -90,15 +94,13 @@ class ExtensionError(Exception):
 	GENERAL = 2
 
 	def __init__(self, ext=r".*", state=None):
+		if not isinstance(ext, str):
+			raise ValueError("Extension's ext argument must be a str not ({} -> {})".format(type(ext), ext))
 		self._ext = ext
+
+		if state not in [self.READ, self.WRITE, self.GENERAL]:
+			raise ValueError("ExtensionError has invalid state ({}), the error state must be either ExtensionError.READ, ExtensionError.WRITE, or ExtensionError.GENERAL".format(state))
 		self._state = state
-
-		if not isinstance(self.ext, str):
-			raise ValueError("Extension's ext argument must be a str")
-		self._ext = ("." if self._ext[0] != "." else "") + self._ext
-
-		if self.state not in [self.READ, self.WRITE, self.GENERAL]:
-			raise ValueError("ExtensionError has invalid state ({}), the error state must be either ExtensionError.READ, ExtensionError.WRITE, or ExtensionError.GENERAL".format(self.state))
 
 	@property
 	def ext(self):

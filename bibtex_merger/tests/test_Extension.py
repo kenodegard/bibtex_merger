@@ -20,14 +20,14 @@ class TestExtension(unittest.TestCase):
 
 	def test_Extension_base(self):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
-		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.extension, r"\.test$")
 		self.assertEqual(testExt.read("sample.test"), "READING")
 		self.assertEqual(testExt.write("sample.test", None), "WRITING")
 
 	def test_Extension_no_extension(self):
 		testExt = Extension(reader=self.tRead, writer=self.tWrite)
 
-		self.assertEqual(testExt.extension, r"\..*")
+		self.assertEqual(testExt.extension, r"\..*$")
 
 		self.assertEqual(testExt.read("sample.test"), "READING")
 		self.assertEqual(testExt.write("sample.test", None), "WRITING")
@@ -40,19 +40,19 @@ class TestExtension(unittest.TestCase):
 
 	def test_Extension_no_read(self):
 		testExt = Extension(ext="test", writer=self.tWrite)
-		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.extension, r"\.test$")
 		self.assertEqual(testExt.write("sample.test", None), "WRITING")
 		self.assertRaises(ExtensionError, testExt.read, "sample.test")
 
 	def test_Extension_no_write(self):
 		testExt = Extension(ext="test", reader=self.tRead)
-		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.extension, r"\.test$")
 		self.assertEqual(testExt.read("sample.test"), "READING")
 		self.assertRaises(ExtensionError, testExt.write, "sample.test", None)
 
 	def test_Extension_no_readwrite(self):
 		testExt = Extension(ext="test")
-		self.assertEqual(testExt.extension, r"\.test")
+		self.assertEqual(testExt.extension, r"\.test$")
 		self.assertRaises(ExtensionError, testExt.read, "sample.test")
 		self.assertRaises(ExtensionError, testExt.write, "sample.test", None)
 
@@ -136,19 +136,19 @@ class TestExtensionError(unittest.TestCase):
 
 	def test_ExtensionError_catching(self):
 		try:
-			raise ExtensionError(ext="test", state=ExtensionError.READ)
+			raise ExtensionError(ext="SOMESTRING", state=ExtensionError.READ)
 		except ExtensionError as e:
-			self.assertEqual(str(e), "Attempted to read an unsupported file format (.test)")
+			self.assertEqual(str(e), "Attempted to read an unsupported file format (SOMESTRING)")
 
 		try:
-			raise ExtensionError(ext="test", state=ExtensionError.WRITE)
+			raise ExtensionError(ext="SOMESTRING", state=ExtensionError.WRITE)
 		except ExtensionError as e:
-			self.assertEqual(str(e), "Attempted to write an unsupported file format (.test)")
+			self.assertEqual(str(e), "Attempted to write an unsupported file format (SOMESTRING)")
 
 		try:
-			raise ExtensionError(ext="test", state=ExtensionError.GENERAL)
+			raise ExtensionError(ext="SOMESTRING", state=ExtensionError.GENERAL)
 		except ExtensionError as e:
-			self.assertEqual(str(e), "Attempted to use an unsupported file format (.test)")
+			self.assertEqual(str(e), "Attempted to use an unsupported file format (SOMESTRING)")
 
 	###########
 	# ext

@@ -109,14 +109,14 @@ class TestCore(unittest.TestCase):
 	def test_extensionNames1(self):
 		c = Core(ext=Extension(ext="test"), prefFile=None)
 
-		self.assertEqual(c.extensionPatterns, [r"\.test"])
+		self.assertEqual(c.extensionPatterns, [r"\.test$"])
 
 	def test_extensionNames2(self):
 		c = Core(ext=[	Extension(ext="test1"),
 						Extension(ext="test2"),
 						Extension(ext="test3")	], prefFile=None)
 
-		self.assertEqual(c.extensionPatterns, [r"\.test1", r"\.test2", r"\.test3"])
+		self.assertEqual(c.extensionPatterns, [r"\.test1$", r"\.test2$", r"\.test3$"])
 
 	###########
 	# extensionObjects
@@ -126,7 +126,7 @@ class TestCore(unittest.TestCase):
 		c = Core(ext=Extension(ext="test"), prefFile=None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
-		self.assertEqual(c.extensionObjects[0].extension, r"\.test")
+		self.assertEqual(c.extensionObjects[0].extension, r"\.test$")
 
 	def test_extensionObjects2(self):
 		c = Core(ext=[	Extension(ext="test1"),
@@ -134,9 +134,9 @@ class TestCore(unittest.TestCase):
 						Extension(ext="test3")	], prefFile=None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
-		self.assertEqual(c.extensionObjects[0].extension, r"\.test1")
-		self.assertEqual(c.extensionObjects[1].extension, r"\.test2")
-		self.assertEqual(c.extensionObjects[2].extension, r"\.test3")
+		self.assertEqual(c.extensionObjects[0].extension, r"\.test1$")
+		self.assertEqual(c.extensionObjects[1].extension, r"\.test2$")
+		self.assertEqual(c.extensionObjects[2].extension, r"\.test3$")
 
 	###########
 	# __read__
@@ -189,6 +189,43 @@ class TestCore(unittest.TestCase):
 		t = "Some random text to insert"
 
 		self.assertRaises(CoreError, c.__write__, "{}/{}".format(self.dataDir, f), t)
+
+	###########
+	# __preferencesRead__
+	###########
+
+	def test_preferencesRead(self):
+		c = Core(ext=Extension(ext="none"), prefFile="{}/sample.cfg".format(self.dataDir))
+
+		pref = c.__preferencesRead__()
+		self.assertEqual(pref.sections(), ["Preferences"])
+		self.assertEqual(pref.items("Preferences"), [('value1', 'Foo'), ('value2', 'Bar'), ('value3', '2015')])
+
+	###########
+	# __preferencesWrite__
+	###########
+
+	def test_preferencesWrite(self):
+		f = "sample2.cfg"
+		
+		sect = "Random1"
+		items = [("n1", "Foo"), ("n2", "Bar"), ("n3", "Baz")]
+
+		c = Core(ext=Extension(ext="none"), prefFile="{}/{}".format(self.dataDir, f))
+
+		pref = c.__preferencesRead__()
+
+		pref.add_section(sect)
+		for o, v in items:
+			pref.set(sect, o, v)
+
+		pref = c.__preferencesWrite__()
+
+		pref = c.__preferencesRead__()
+		self.assertEqual(pref.sections(), [sect])
+		self.assertEqual(pref.items(sect), items)
+
+		os.remove("{}/{}".format(self.dataDir, f))
 
 class TestCoreError(unittest.TestCase):
 

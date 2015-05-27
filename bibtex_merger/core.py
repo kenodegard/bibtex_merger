@@ -1,4 +1,4 @@
-import os, abc, sys, logging, re
+import os, abc, sys, logging, re, ConfigParser
 
 from bibtex_merger.extension import *
 
@@ -42,8 +42,11 @@ class Core(object):
 		else:
 			self._preferencesFile	=	None
 
+		self._preferences		= None
+
 		self._extensionRegexs	= [x.reextension for x in self.extensionObjects]
 		self._extensionPatters	= [x.extension   for x in self.extensionObjects]
+
 		return
 
 	@property
@@ -100,13 +103,11 @@ class Core(object):
 		return
 
 	def __read__(self, filename):
-		ext = os.path.splitext(filename)[1]
-
 		try:
-			indeces = [bool(re.match(reex, ext)) for reex in self.extensionRegexs]
+			indeces = [bool(re.search(reex, filename)) for reex in self.extensionRegexs]
 			index   = indeces.index(True)
 
-			assert bool(re.match(self.extensionObjects[index].reextension, ext)) == True
+			assert bool(re.search(self.extensionObjects[index].reextension, filename)) == True
 
 			return self.extensionObjects[index].read(filename=filename)
 		except ValueError:
@@ -114,13 +115,11 @@ class Core(object):
 			raise CoreError("Attempted to read an unsupported file format ({})".format(filename))
 
 	def __write__(self, filename, content):
-		ext = os.path.splitext(filename)[1]
-
 		try:
-			indeces = [bool(re.match(reex, ext)) for reex in self.extensionRegexs]
+			indeces = [bool(re.search(reex, filename)) for reex in self.extensionRegexs]
 			index   = indeces.index(True)
 
-			assert bool(re.match(self.extensionObjects[index].reextension, ext)) == True
+			assert bool(re.search(self.extensionObjects[index].reextension, filename)) == True
 
 			return self.extensionObjects[index].write(filename=filename, content=content)
 		except ValueError:
@@ -135,26 +134,25 @@ class Core(object):
 	def preferencesFile(self):
 		return self._preferencesFile
 	
-
-	def __preferencesR__(self):
+	def __preferencesRead__(self):
 		if self.preferencesFile == None:
 			raise CoreError("This core does not support preferences")
 
-		try:
-			return self.preferences
-		except NameError:
+		# preferences have not been imported yet
+		if self.preferences == None:
 			self._preferences = self.__read__(self.preferencesFile)
-			return self.preferences
 
-	def __preferencesW__(self):
+		return self.preferences
+
+	def __preferencesWrite__(self):
 		if self.preferencesFile == None:
 			raise CoreError("This core does not support preferences")
 
-		try:
-			self.__write__(self.preferencesFile, self.preferences)
-		except NameError:
+		# preferences have not been imported yet
+		if self.preferences == None:
 			self._preferences = self.__read__(self.preferencesFile)
-			self.__write__(self.preferencesFile, self.preferences)
+
+		return self.__write__(self.preferencesFile, self.preferences)
 
 	# 	# reading
 	# 	config = self.__read__(self.installDir, self.configFile)
