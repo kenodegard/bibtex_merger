@@ -26,22 +26,13 @@ before_install:
   # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  
+
 # Install packages
 install:
   - if [[ $TEST_SUITE == suite_3_4 ]]; then
         pip install sphinx;
     fi;
   - pip install coverage
-
-  ##########
-
-  # start bibtex_cleanup_parser dependency
-  - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz
-  - tar -xvf master.tar.gz && cd bibtex_cleanup_parser-master
-  - python setup.py install
-  - cd ..
-  # end bibtex_cleanup_parser dependency
 
   ##########
 
@@ -52,6 +43,15 @@ install:
   - pip install Fuzzy
   - pip install scikit-learn
   # end other supporting dependencies
+
+  ##########
+
+  # start bibtex_cleanup_parser dependency
+  - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz
+  - tar -xvf master.tar.gz && cd bibtex_cleanup_parser-master
+  - python setup.py install
+  - cd ..
+  # end bibtex_cleanup_parser dependency
 
   ##########
 

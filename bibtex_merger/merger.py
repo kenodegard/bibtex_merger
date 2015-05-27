@@ -27,30 +27,39 @@ __all__ = [	'BibTeX_Merger'	]
 class BibTeX_Merger(Core):
 	def __init__(self,	numFiles = -1,
 						importDir = '.',
-						verbose = False,
+						killLevel = 'warning',
 						shallowDeepCompDiv = 3.4,
 						summedPercentErrorDiv = [0.4, 1.0],
 						learningModel = 'fminunc',
 						doLearning = 'remakeModel'):
 		super(BibTeX_Merger, self).__init__(self.__initExtensions__())
 
-
 		self.__initConstants__()
 
 		# Optionally passed flag from command line that specifies how many files to use
 		# If set to -1 (default) then all files in the data/0_original/ directory will be used
+		if not isinstance(numFiles, int):
+			raise ValueError("BibTeX_Merger numFiles argument requires int not ({})".format(type(numFiles)))
 		self.numFiles = numFiles
 
+		if not isinstance(importDir, str) and os.path.isdir(importDir):
+			raise ValueError("BibTeX_Merger importDir argument requires str to a directory not ({} -> {})".format(type(importDir), importDir))
 		self.importDir = importDir
 
-		# Verbose level that optionally prints more debugging code
-		self.verbose = verbose
+		# Verbose level that optionally prints more debugging code'
+		if not isinstance(killLevel, str) and killLevel in self.killLevel:
+			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevel), type(killLevel), killLevel)
+		self.killLevel = self.killLevel[killLevel]
 
 		# The manually decided breakpoints
+		if not (isinstance(shallowDeepCompDiv, int) or isinstance(shallowDeepCompDiv, float)) and shallowDeepCompDiv < 0:
+			raise ValueError("BibTeX_Merger shallowDeepCompDiv argument must be int|float > 0 not ({} -> {})".format(type(shallowDeepCompDiv), shallowDeepCompDiv))
 		self.shallowDeepCompDiv = shallowDeepCompDiv
 
 		# Lower and Upper breakpoints, everything lower than lower is assumed duplicate,
 		# everything greater than upper is assumed unique
+		if not isinstance(summedPercentErrorDiv, list) and not all(isinstance(x, int) or isinstance(x, float) for x in summedPercentErrorDiv) and not all(x > 0 for x in summedPercentErrorDiv):
+			raise ValueError("BibTeX_Merger summedPercentErrorDiv argument must be a list of int|float > 0 not ({} -> {})".format(type(summedPercentErrorDiv), summedPercentErrorDiv))
 		self.summedPercentErrorDiv = summedPercentErrorDiv
 
 		# Sample fminunc theta
@@ -120,6 +129,9 @@ class BibTeX_Merger(Core):
 
 	def __initConstants__(self):
 		self.logger = logging.getLogger(__name__)
+
+		self.killLevel = ['warning', 'error']
+		self.killLevel = dict((v,k) for k, v in enumerate(self.killLevel))
 
 		self.doLearnings = ['off', 'remakeData', 'remakeModel']
 		self.doLearnings = dict((v,k) for k, v in enumerate(self.doLearnings))
@@ -233,8 +245,12 @@ class BibTeX_Merger(Core):
 
 		importDirFiles = [f for f in os.listdir(self.importDir) if os.path.isfile(os.path.join(self.importDir, f)) and os.path.splitext(f)[1] == ".bib"]
 
-		if len(importDirFiles) == 0:
+		maxNumFiles = len(importDirFiles)
+		if maxNumFiles == 0:
 			raise UserError("No files were imported. Need at least one.")
+
+		# determine whether we are only reading in the first subset or whether we are reading in the maximum
+		self.numFiles = maxNumFiles if self.numFiles < 0 else min(self.numFiles, maxNumFiles)
 
 		# self.db = None
 		self.db = bp.bibdatabase.BibDatabase()
@@ -333,7 +349,7 @@ class BibTeX_Merger(Core):
 				else:
 					self.bagged[numAuthors].append(e)
 			except IndexError:
-				if self.verbose:
+				if self.killLevel:
 					print("ERROR: fixed num: skipping ({})".format(e[self.author]))
 
 		for e in self.db_etal:
@@ -349,7 +365,7 @@ class BibTeX_Merger(Core):
 				else:
 					self.bagged[numAuthors].append(e)
 			except IndexError:
-				if self.verbose:
+				if self.killLevel:
 					print("ERROR: etal num: skipping ({})".format(e[self.author]))
 
 		print("")
@@ -384,7 +400,7 @@ class BibTeX_Merger(Core):
 						else:
 							alphaBagged[letter].append(e)
 				except IndexError:
-					if self.verbose:
+					if self.killLevel:
 						print("ERROR: letter: skipping ({})".format(e[self.author]))
 
 			self.bagged[groupID] = alphaBagged
@@ -483,7 +499,7 @@ class BibTeX_Merger(Core):
 
 							combDist[editDistance * phonDistance] = [authors1, authors2]
 						except UnicodeEncodeError:
-							if self.verbose:
+							if self.killLevel:
 								print("ERROR: skipping")
 
 		
@@ -587,7 +603,7 @@ class BibTeX_Merger(Core):
 				else:
 					self.allPredictionsClass.append(0)
 		except KeyError:
-			if self.verbose:
+			if self.killLevel:
 				print("ERROR: skipping")
 
 		return
