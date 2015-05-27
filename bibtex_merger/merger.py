@@ -25,13 +25,7 @@ logger = logging.getLogger(__name__)
 __all__ = [	'BibTeX_Merger'	]
 
 class BibTeX_Merger(Core):
-	def __init__(self,	numFiles = -1,
-						importDir = '.',
-						killLevel = 'warning',
-						shallowDeepCompDiv = 3.4,
-						summedPercentErrorDiv = [0.4, 1.0],
-						learningModel = 'fminunc',
-						doLearning = 'remakeModel'):
+	def __init__(self, numFiles=-1, importDir='.', killLevel='warning', shallowDeepCompDiv=3.4, summedPercentErrorDiv=[0.4, 1.0], learningModel='fminunc', doLearning='remakeModel'):
 		super(BibTeX_Merger, self).__init__(self.__initExtensions__())
 
 		self.__initConstants__()
@@ -47,9 +41,9 @@ class BibTeX_Merger(Core):
 		self._importDir = importDir
 
 		# Verbose level that optionally prints more debugging code'
-		if not isinstance(killLevel, str) and killLevel in self.killLevel:
-			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevel), type(killLevel), killLevel))
-		self._killLevel = self.killLevel[killLevel]
+		if not isinstance(killLevel, str) and killLevel in self.killLevels:
+			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevels), type(killLevel), killLevel))
+		self._killLevel = self.killLevels[killLevel]
 
 		# The manually decided breakpoints
 		if not (isinstance(shallowDeepCompDiv, int) or isinstance(shallowDeepCompDiv, float)) and shallowDeepCompDiv < 0:
@@ -79,7 +73,7 @@ class BibTeX_Merger(Core):
 			raise ValueError("BibTeX_Merger doLearning argument must be {} not ({} -> {})".format("|".join(self.doLearning), type(doLearning), doLearning))
 		self._doLearning = self.doLearnings[doLearning]
 
-		# self.__run__()
+		self.__run__()
 
 		return
 
@@ -147,8 +141,8 @@ class BibTeX_Merger(Core):
 	def __initConstants__(self):
 		self.logger = logging.getLogger(__name__)
 
-		self.killLevel = ['warning', 'error']
-		self.killLevel = dict((v,k) for k, v in enumerate(self.killLevel))
+		self.killLevels = ['warning', 'error']
+		self.killLevels = dict((v,k) for k, v in enumerate(self.killLevels))
 
 		self.doLearnings = ['off', 'remakeData', 'remakeModel']
 		self.doLearnings = dict((v,k) for k, v in enumerate(self.doLearnings))
@@ -244,12 +238,12 @@ class BibTeX_Merger(Core):
 
 	def __run__(self):
 		self.Import()
-		self.PreProcessor()
-		self.Bagging()
-		self.ShallowCompare()
+		# self.PreProcessor()
+		# self.Bagging()
+		# self.ShallowCompare()
 
-		if self.doLearning != self.doLearnings['off']:
-			self.Learner()
+		# if self.doLearning != self.doLearnings['off']:
+		# 	self.Learner()
 
 		return
 
@@ -275,7 +269,7 @@ class BibTeX_Merger(Core):
 
 		maxNumFiles = len(importDirFiles)
 		if maxNumFiles == 0:
-			raise UserError("No files were imported. Need at least one.")
+			raise MergerError("No files were imported. Need at least one.")
 
 		# determine whether we are only reading in the first subset or whether we are reading in the maximum
 		self.numFiles = maxNumFiles if self.numFiles < 0 else min(self.numFiles, maxNumFiles)
@@ -291,12 +285,12 @@ class BibTeX_Merger(Core):
 
 			# pull out the filename w/o the extension
 			# map any non-alpha-numeric to '_'
-			coreFN = filename[:filename.index(".")]
-			coreFN = coreFN.translate(self.mapToUnderscore)
+			baseFilename = filename[:filename.index(".")]
+			baseFilename = baseFilename.translate(self.mapToUnderscore)
 
 			# find a unique tag (this should rarely occur)
-			while coreFN in self.tags:
-				coreFN += "_"
+			while baseFilename in self.tags:
+				baseFilename += "_"
 
 			# try to import the specified file and parse
 			try:
@@ -308,17 +302,17 @@ class BibTeX_Merger(Core):
 					if self.id not in e.keys():
 						raise BibTeXParserError("'{}' key not in this entry ({})".format(self.id, e.keys()))
 
-					e[self.id] = "{}_{}".format(coreFN, e[self.id])
+					e[self.id] = "{}_{}".format(baseFilename, e[self.id])
 
 				# append all ids in the string dictionary with this file's unique tag
 				# s.t. all resulting ids are entirely unique w/r to all of the imported files
 				temp_strings = OrderedDict()
 				for k, v in temp_db.strings.iteritems():
-					newID = "{}_{}".format(coreFN, k)
+					newID = "{}_{}".format(baseFilename, k)
 					temp_strings[newID] = v
 				temp_db.strings = temp_strings
 
-				self.tags += coreFN
+				self.tags += baseFilename
 			except ValueError:
 				self.logger.warning("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
 
@@ -692,7 +686,15 @@ class BibTeX_Merger(Core):
 		
 		return
 
-	
+class MergerError(CoreError):
+	"""Exception raised for Merger object errors.
+
+	Attributes:
+		msg -- the message addressing the error thrown
+	"""
+
+	def __init__(self, msg=None):
+		super(CoreError, self).__init__(msg)
 
 if __name__ == '__main__':
 	try:

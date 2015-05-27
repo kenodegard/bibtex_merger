@@ -12,6 +12,8 @@ class Core(object):
 		ext	--	The Extension objects that this Core accepts. Ordered from
 				most specific to generic extensions since the first match
 				found for a filename is the one used.
+		prefFile -- The filename for the preferences file. Default: 'pref.cfg'
+		prefExt -- The filename extension for the preferences file. Default: r'cfg'
 	"""
 	def __init__(self, ext, prefFile='pref.cfg', prefExt=r'cfg'):
 		if isinstance(ext, Extension):
@@ -37,7 +39,10 @@ class Core(object):
 					return content.write(f)
 
 			self._preferencesFile	= prefFile
-			self._extensionObjects	= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)] + self._extensionObjects
+			# self._extensionObjects	= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)] + self._extensionObjects
+			self._extensionObjects	+= [Extension(ext=prefExt, reader=prefRead, writer=prefWrite)]
+		else:
+			self._preferencesFile	= None
 
 		self._extensionRegexs	= [x.reextension for x in self.extensionObjects]
 		self._extensionPatters	= [x.extension   for x in self.extensionObjects]
@@ -126,15 +131,32 @@ class Core(object):
 
 	@property
 	def preferences(self):
-	    return self._preferences
+		return self._preferences
+
+	@property
+	def preferencesFile(self):
+		return self._preferencesFile
+	
 
 	def __preferencesR__(self):
+		if self.preferencesFile == None:
+			raise CoreError("This core does not support preferences")
+
 		try:
 			return self.preferences
 		except NameError:
 			self._preferences = self.__read__(self.preferencesFile)
+			return self.preferences
 
 	def __preferencesW__(self):
+		if self.preferencesFile == None:
+			raise CoreError("This core does not support preferences")
+
+		try:
+			self.__write__(self.preferencesFile, self.preferences)
+		except NameError:
+			self._preferences = self.__read__(self.preferencesFile)
+			self.__write__(self.preferencesFile, self.preferences)
 
 	# 	# reading
 	# 	config = self.__read__(self.installDir, self.configFile)

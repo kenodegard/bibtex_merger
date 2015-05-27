@@ -92,14 +92,14 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_extensionNames1(self):
-		c = Core(Extension(ext="test"))
+		c = Core(Extension(ext="test"), None)
 
 		self.assertEqual(c.extensionPatterns, [r"\.test"])
 
 	def test_extensionNames2(self):
 		c = Core([	Extension(ext="test1"),
 					Extension(ext="test2"),
-					Extension(ext="test3")	])
+					Extension(ext="test3")	], None)
 
 		self.assertEqual(c.extensionPatterns, [r"\.test1", r"\.test2", r"\.test3"])
 
@@ -108,7 +108,7 @@ class TestCore(unittest.TestCase):
 	###########
 
 	def test_extensionObjects1(self):
-		c = Core(Extension(ext="test"))
+		c = Core(Extension(ext="test"), None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
 		self.assertEqual(c.extensionObjects[0].extension, r"\.test")
@@ -116,7 +116,7 @@ class TestCore(unittest.TestCase):
 	def test_extensionObjects2(self):
 		c = Core([	Extension(ext="test1"),
 					Extension(ext="test2"),
-					Extension(ext="test3")	])
+					Extension(ext="test3")	], None)
 
 		self.assertEqual(all(isinstance(x, Extension) for x in c.extensionObjects), True)
 		self.assertEqual(c.extensionObjects[0].extension, r"\.test1")
