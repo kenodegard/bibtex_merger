@@ -50,6 +50,7 @@ install:
   # - sudo update-alternatives --set liblapack.so.3 /usr/lib/lapack/liblapack.so.3
 
   - sudo apt-get install python-numpy
+  - sudo apt-get install cython
   - sudo apt-get install python-scipy
   - sudo apt-get install python-sklearn
   # - sudo apt-get install libatlas-dev
