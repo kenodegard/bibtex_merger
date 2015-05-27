@@ -103,9 +103,9 @@ install:
   - pip install Fuzzy
   - pip install numpy
 
-  - apt-get install gfortran
-  - apt-get install libopenblas-dev
-  - apt-get install liblapack-dev
+  - sudo apt-get install gfortran
+  - sudo apt-get install libopenblas-dev
+  - sudo apt-get install liblapack-dev
 
   - pip install scipy
   - pip install scikit-learn
