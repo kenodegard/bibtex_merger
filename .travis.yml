@@ -21,105 +21,30 @@ install:
     fi;
   - pip install coverage
 
-  # - mkdir tmp && cd tmp
-  # ##########
-  # # start bibtex_cleanup_parser dependency
-  # - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz
-  # - tar -xvf master.tar.gz && cd bibtex_cleanup_parser-master
-  # - python setup.py install
-  # - cd ..
-  # # end bibtex_cleanup_parser dependency
-  # ##########
-  # # start Levenshtein dependency
-  # - wget https://pypi.python.org/packages/source/p/python-Levenshtein/python-Levenshtein-0.12.0.tar.gz
-  # - tar -xvf python-Levenshtein-0.12.0.tar.gz && cd python-Levenshtein-0.12.0
-  # - python setup.py install
-  # - cd ..
-  # # end Levenshtein dependency
-  # ##########
-  # # start Fuzzy dependency
-  # - wget https://pypi.python.org/packages/source/F/Fuzzy/Fuzzy-1.0.tar.gz
-  # - tar -xvf Fuzzy-1.0.tar.gz && cd Fuzzy-1.0
-  # - python setup.py install
-  # - cd ..
-  # # end Fuzzy dependency
-  # ##########
-
-  # start pre gmpy2 dependency
-  # - mkdir $HOME/static
-
-  # - wget https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-  # - tar -xvf gmp-6.0.0a.tar.bz2 && cd gmp-6.0.0
-  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --enable-fat
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
-
-  # - wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz
-  # - tar -xvf mpfr-3.1.2.tar.gz && cd mpfr-3.1.2
-  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
-  
-  # - wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
-  # - tar -xvf mpc-1.0.2.tar.gz && cd mpc-1.0.2
-  # - ./configure #--prefix=$HOME/static --enable-static --disable-shared --with-pic --with-gmp=$HOME/static --with-mpfr=$HOME/static
-  # - make
-  # - make check
-  # - sudo make install
-  # - cd ..
-  # end pre gmpy2 dependency
-
-  # ##########
-
-  # # start gmpy2 dependency
-  # - wget https://pypi.python.org/packages/source/g/gmpy2/gmpy2-2.0.5.zip
-  # - unzip gmpy2-2.0.5.zip && cd gmpy2-2.0.5
-  # - python setup.py build_ext --prefix=$HOME/static
-  # - python setup.py install
-  # - cd ..
-  # # end gmpy2 dependency
-
   ##########
-
-  # start gmpy2 dependency
-  # - sudo apt-get install libgmp3-dev, libmpfr, libmpc
-  # - pip install gmpy2
-  # end gmpy2 dependency
-
-  # - sudo apt-get install libgmp10
-  # - sudo apt-get install libmpfr4
-  # - sudo apt-get install mpc
-  # - sudo apt-get install python-gmpy2-common
-  # - pip install gmpy2
-
+  # start bibtex_cleanup_parser dependency
+  - wget https://github.com/njalerikson/bibtex_cleanup_parser/archive/master.tar.gz
+  - tar -xvf master.tar.gz && cd bibtex_cleanup_parser-master
+  - python setup.py install
+  - cd ..
+  # end bibtex_cleanup_parser dependency
   ##########
-  # - cd ..
-
+  # start Levenshtein dependency
   - pip install python-Levenshtein
+  # end Levenshtein dependency
+  ##########
+  # start Fuzzy dependency
   - pip install Fuzzy
-  - pip install numpy
-
-  # - sudo apt-get install gfortran
-  # - sudo apt-get install libopenblas-dev
-  # - sudo apt-get install liblapack-dev
-
-  # - pip install scipy
-  # - pip install scikit-learn
-
+  # end Fuzzy dependency
+  ##########
+  # start numpy dependency
   - sudo apt-get install python-numpy
+  # end numpy dependency
+  ##########
+  # start scipy dependency
   - sudo apt-get install python-scipy
-  # - sudo apt-get build-dep scipy
-  # - sudo apt-get install python-matplotlib
-  # - sudo apt-get install ipython
-  # - sudo apt-get install ipython-notebook
-  # - sudo apt-get install python-pandas
-  # - sudo apt-get install python-sympy
-  # - sudo apt-get install python-nose
-
+  # end scipy dependency
+  ##########
   - python setup.py install
 script:
   - nosetests --with-coverage  --cover-erase --cover-package=bibtex_merger
