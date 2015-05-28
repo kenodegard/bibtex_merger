@@ -32,23 +32,95 @@ class TestCore(unittest.TestCase):
 		self.assertRaises(ValueError, Core, ext=[Extension(ext="none"), 1234])
 
 	def test_prefFile_good(self):
-		Core(Extension(ext="none"))
-		Core(Extension(ext="none"), prefFile=None)
-		Core(Extension(ext="none"), prefFile="pref.cfg")
+		Core(ext=Extension(ext="none"))
+		Core(ext=Extension(ext="none"), prefFile=None)
+		Core(ext=Extension(ext="none"), prefFile="pref.cfg")
 
 	def test_prefFile_bad(self):
 		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), prefFile=12345)
 		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), prefFile=Extension(ext="none"))
+
+	def test_out(self):
+		Core(ext=Extension(ext="none"))
+		Core(ext=Extension(ext="none"), out=sys.stdout)
+		Core(ext=Extension(ext="none"), out=StringIO())
+
+	def test_out_bad(self):	
+		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), out="invalid")
+
+	def test_killLevel(self):
+		c = Core(ext=Extension(ext="none"))
+		self.assertEqual(c.killLevel, c.killLevels['warning'])
+		c = Core(ext=Extension(ext="none"), killLevel='warning')
+		self.assertEqual(c.killLevel, c.killLevels['warning'])
+		c = Core(ext=Extension(ext="none"), killLevel='error')
+		self.assertEqual(c.killLevel, c.killLevels['error'])
+
+	def test_killLevel_bad(self):	
+		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), killLevel="invalid")
+		self.assertRaises(ValueError, Core, ext=Extension(ext="none"), killLevel=12345)
+
+	###########
+	# Properties
+	###########
+
+	def attemptChange_killLevel(self):
+		m = Core(ext=Extension(ext="none"))
+		m.killLevel = "bad"
+
+	def attemptChange_out(self):
+		m = Core(ext=Extension(ext="none"))
+		m.out = "bad"
+
+	def attemptChange_extensionObjects(self):
+		m = Core(ext=Extension(ext="none"))
+		m.extensionObjects = "bad"
+
+	def attemptChange_extensionRegexs(self):
+		m = Core(ext=Extension(ext="none"))
+		m.extensionRegexs = "bad"
+
+	def attemptChange_extensionPatterns(self):
+		m = Core(ext=Extension(ext="none"))
+		m.extensionPatterns = "bad"
+
+	def attemptChange_preferences(self):
+		m = Core(ext=Extension(ext="none"))
+		m.preferences = "bad"
+
+	def attemptChange_preferencesFile(self):
+		m = Core(ext=Extension(ext="none"))
+		m.preferencesFile = "bad"
+
+	def test_properties(self):
+		m = Core(ext=Extension(ext="none"))
+
+		m.killLevel
+		m.out
+		m.extensionObjects
+		m.extensionRegexs
+		m.extensionPatterns
+		m.preferences
+		m.preferencesFile
+
+	def test_properties_bad(self):
+		self.assertRaises(AttributeError, self.attemptChange_killLevel)
+		self.assertRaises(AttributeError, self.attemptChange_out)
+		self.assertRaises(AttributeError, self.attemptChange_extensionObjects)
+		self.assertRaises(AttributeError, self.attemptChange_extensionRegexs)
+		self.assertRaises(AttributeError, self.attemptChange_extensionPatterns)
+		self.assertRaises(AttributeError, self.attemptChange_preferences)
+		self.assertRaises(AttributeError, self.attemptChange_preferencesFile)
 
 	###########
 	# __title__
 	###########
 
 	def test_title1(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		c.__title__(title="Random Title", out=out)
+		c.__title__(title="Random Title")
 		output = out.getvalue().strip()
 
 		self.assertEqual(output,	"################################################################################\n" +
@@ -56,10 +128,10 @@ class TestCore(unittest.TestCase):
 									"################################################################################")
 
 	def test_title2(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		c.__title__(title="a" * 100, out=out)
+		c.__title__(title="a" * 100)
 		output = out.getvalue().strip()
 
 		self.assertEqual(output,	"################################################################################\n" +
@@ -67,40 +139,40 @@ class TestCore(unittest.TestCase):
 									"################################################################################")
 
 	def test_title3(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		self.assertRaises(ValueError, c.__title__, title=123, out=out)
+		self.assertRaises(ValueError, c.__title__, title=123)
 
 	###########
 	# __subtitle__
 	###########
 
 	def test_subtitle1(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		c.__subtitle__(title="Random Subtitle", out=out)
+		c.__subtitle__(title="Random Subtitle")
 		output = out.getvalue().strip()
 
 		self.assertEqual(output,	"||                              RANDOM SUBTITLE                               ||\n" +
 									"================================================================================")
 
 	def test_subtitle2(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		c.__subtitle__(title="a" * 100, out=out)
+		c.__subtitle__(title="a" * 100)
 		output = out.getvalue().strip()
 
 		self.assertEqual(output,	"|| AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ||\n" +
 									"================================================================================")
 
 	def test_subtitle3(self):
-		c = Core(ext=Extension(ext="none"))
 		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
 
-		self.assertRaises(ValueError, c.__subtitle__, title=123, out=out)
+		self.assertRaises(ValueError, c.__subtitle__, title=123)
 
 	###########
 	# extensionNames
@@ -191,21 +263,34 @@ class TestCore(unittest.TestCase):
 		self.assertRaises(CoreError, c.__write__, "{}/{}".format(self.dataDir, f), t)
 
 	###########
+	# preferences
+	###########
+
+	def test_no_preferences_attemptreadwrite(self):
+		c = Core(ext=Extension(ext="none"), prefFile=None)
+
+		self.assertRaises(CoreError, c.__preferencesRead__)
+		self.assertRaises(CoreError, c.__preferencesWrite__)
+
+	###########
 	# __preferencesRead__
 	###########
+
+	samplePrefSect = "Preferences"
+	samplePrefItems = [('value1', 'Foo'), ('value2', 'Bar'), ('value3', '2015')]
 
 	def test_preferencesRead(self):
 		c = Core(ext=Extension(ext="none"), prefFile="{}/sample.cfg".format(self.dataDir))
 
 		pref = c.__preferencesRead__()
-		self.assertEqual(pref.sections(), ["Preferences"])
-		self.assertEqual(pref.items("Preferences"), [('value1', 'Foo'), ('value2', 'Bar'), ('value3', '2015')])
+		self.assertEqual(pref.sections(), [self.samplePrefSect])
+		self.assertEqual(pref.items(self.samplePrefSect), self.samplePrefItems)
 
 	###########
 	# __preferencesWrite__
 	###########
 
-	def test_preferencesWrite(self):
+	def test_preferencesWrite1(self):
 		f = "sample2.cfg"
 		
 		sect = "Random1"
@@ -227,6 +312,80 @@ class TestCore(unittest.TestCase):
 
 		os.remove("{}/{}".format(self.dataDir, f))
 
+	def test_preferencesWrite2(self):
+		f = "sample.cfg"
+		
+		c = Core(ext=Extension(ext="none"), prefFile="{}/{}".format(self.dataDir, f))
+
+		c.__preferencesWrite__()
+
+		pref = c.__preferencesRead__()
+		self.assertEqual(pref.sections(), [self.samplePrefSect])
+		self.assertEqual(pref.items(self.samplePrefSect), self.samplePrefItems)
+
+	###########
+	# __info__
+	###########
+
+	def test_info(self):
+		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out)
+
+		c.__info__("just a message")
+		output = out.getvalue().strip()
+
+		self.assertEqual(output, "just a message")
+
+	def test_info_bad(self):
+		c = Core(ext=Extension(ext="none"))
+
+		self.assertRaises(ValueError, c.__info__, 12345)
+
+	###########
+	# __warning__
+	###########
+
+	def test_warning1(self):
+		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out, killLevel='error')
+
+		c.__warning__(ValueError("just a message"))
+		output = out.getvalue().strip()
+
+		self.assertEqual(output, "WARNING: ValueError: just a message")
+
+	def test_warning2(self):
+		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out, killLevel='warning')
+
+		self.assertRaises(ValueError, c.__warning__, ValueError("just a message"))
+
+	def test_warning_bad(self):
+		c = Core(ext=Extension(ext="none"))
+
+		self.assertRaises(ValueError, c.__warning__, 12345)
+
+	###########
+	# __error__
+	###########
+
+	def test_error1(self):
+		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out, killLevel='warning')
+
+		self.assertRaises(ValueError, c.__error__, ValueError("just a message"))
+
+	def test_error2(self):
+		out = StringIO()
+		c = Core(ext=Extension(ext="none"), out=out, killLevel='error')
+
+		self.assertRaises(ValueError, c.__error__, ValueError("just a message"))
+
+	def test_error_bad(self):
+		c = Core(ext=Extension(ext="none"))
+
+		self.assertRaises(ValueError, c.__error__, 12345)
+		
 class TestCoreError(unittest.TestCase):
 
 	###########

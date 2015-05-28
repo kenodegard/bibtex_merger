@@ -14,6 +14,22 @@ class TestExtension(unittest.TestCase):
 	def tWrite(self, filename, content):
 		return "WRITING"
 
+	def extensionAttemptExtensionChange(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+		testExt.extension = "blue"
+
+	def extensionAttemptReextensionChange(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+		testExt.reextension = "blue"
+
+	def extensionAttemptReaderChange(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+		testExt.reader = "blue"
+
+	def extensionAttemptWriterChange(self):
+		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
+		testExt.writer = "blue"
+
 	###########
 	# __init__
 	###########
@@ -82,6 +98,34 @@ class TestExtension(unittest.TestCase):
 		testExt = Extension(ext="test", reader=self.tRead, writer=self.tWrite)
 
 		self.assertRaises(ExtensionError, testExt.write, filename="sample.txt", content=None)
+
+	###########
+	# extension
+	###########
+
+	def test_Extension_extension_change(self):
+		self.assertRaises(AttributeError, self.extensionAttemptExtensionChange)
+
+	###########
+	# reextension
+	###########
+
+	def test_Extension_extension_change(self):
+		self.assertRaises(AttributeError, self.extensionAttemptReextensionChange)
+
+	###########
+	# reader
+	###########
+
+	def test_Extension_extension_change(self):
+		self.assertRaises(AttributeError, self.extensionAttemptReaderChange)
+
+	###########
+	# writer
+	###########
+
+	def test_Extension_extension_change(self):
+		self.assertRaises(AttributeError, self.extensionAttemptWriterChange)
 
 class TestExtensionError(unittest.TestCase):
 

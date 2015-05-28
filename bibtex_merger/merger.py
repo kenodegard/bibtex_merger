@@ -12,8 +12,7 @@ from sklearn.cross_validation import train_test_split
 # from scipy import misc as ch
 # import gmpy2 as ch
 
-import re, csv, os, threading, logging
-from sys import argv
+import re, csv, os, threading, logging, sys
 from datetime import *
 from collections import OrderedDict
 import ConfigParser
@@ -22,11 +21,11 @@ from bibtex_merger.core import *
 from bibtex_merger.extension import *
 
 logger = logging.getLogger(__name__)
-__all__ = [	'BibTeX_Merger'	]
+__all__ = [	'BibTeX_Merger', 'MergerError'	]
 
 class BibTeX_Merger(Core):
-	def __init__(self, importDir='.', numFiles=-1, killLevel='warning', shallowDeepCompDiv=3.4, summedPercentErrorDiv=[0.4, 1.0], learningModel='fminunc', doLearning='remakeModel'):
-		super(BibTeX_Merger, self).__init__(self.__initExtensions__())
+	def __init__(self, out=sys.stdout, importDir='.', numFiles=-1, killLevel='warning', shallowDeepCompDiv=3.4, summedPercentErrorDiv=[0.4, 1.0], learningModel='fminunc', doLearning='remakeModel'):
+		super(BibTeX_Merger, self).__init__(ext=self.__initExtensions__(), out=out, killLevel=killLevel)
 
 		self.__initConstants__()
 
@@ -36,23 +35,18 @@ class BibTeX_Merger(Core):
 			raise ValueError("BibTeX_Merger numFiles argument requires int not ({})".format(type(numFiles)))
 		self._numFiles = numFiles
 
-		if not isinstance(importDir, str) and os.path.isdir(importDir):
+		if not (isinstance(importDir, str) and os.path.isdir(importDir)):
 			raise ValueError("BibTeX_Merger importDir argument requires str to a directory not ({} -> {})".format(type(importDir), importDir))
 		self._importDir = importDir
 
-		# Verbose level that optionally prints more debugging code'
-		if not isinstance(killLevel, str) and killLevel in self.killLevels:
-			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevels), type(killLevel), killLevel))
-		self._killLevel = self.killLevels[killLevel]
-
 		# The manually decided breakpoints
-		if not (isinstance(shallowDeepCompDiv, int) or isinstance(shallowDeepCompDiv, float)) and shallowDeepCompDiv < 0:
+		if not ((isinstance(shallowDeepCompDiv, int) or isinstance(shallowDeepCompDiv, float)) and shallowDeepCompDiv >= 0):
 			raise ValueError("BibTeX_Merger shallowDeepCompDiv argument must be int|float > 0 not ({} -> {})".format(type(shallowDeepCompDiv), shallowDeepCompDiv))
 		self._shallowDeepCompDiv = shallowDeepCompDiv
 
 		# Lower and Upper breakpoints, everything lower than lower is assumed duplicate,
 		# everything greater than upper is assumed unique
-		if not isinstance(summedPercentErrorDiv, list) and not all(isinstance(x, int) or isinstance(x, float) for x in summedPercentErrorDiv) and not all(x > 0 for x in summedPercentErrorDiv):
+		if not (isinstance(summedPercentErrorDiv, list) and all(isinstance(x, int) or isinstance(x, float) for x in summedPercentErrorDiv) and all(x >= 0 for x in summedPercentErrorDiv)):
 			raise ValueError("BibTeX_Merger summedPercentErrorDiv argument must be a list of int|float > 0 not ({} -> {})".format(type(summedPercentErrorDiv), summedPercentErrorDiv))
 		self._summedPercentErrorDiv = summedPercentErrorDiv
 
@@ -63,19 +57,23 @@ class BibTeX_Merger(Core):
 
 		# Learning model to use
 		# available options: fminunc | glmfit
-		if not isinstance(learningModel, str) and learningModel in self.learningModel:
-			raise ValueError("BibTeX_Merger learningModel argument must be {} not ({} -> {})".format("|".join(self.learningModel), type(learningModel), learningModel))
+		if not (isinstance(learningModel, str) and learningModel in self.learningModels):
+			raise ValueError("BibTeX_Merger learningModel argument must be {} not ({} -> {})".format("|".join(self.learningModels), type(learningModel), learningModel))
 		self._learningModel = self.learningModels[learningModel]
 
 		# What to do in this instance of code execution
 		# available options: off | remakeData | remakeModel
-		if not isinstance(doLearning, str) and doLearning in self.doLearning:
-			raise ValueError("BibTeX_Merger doLearning argument must be {} not ({} -> {})".format("|".join(self.doLearning), type(doLearning), doLearning))
+		if not (isinstance(doLearning, str) and doLearning in self.doLearnings):
+			raise ValueError("BibTeX_Merger doLearning argument must be {} not ({} -> {})".format("|".join(self.doLearnings), type(doLearning), doLearning))
 		self._doLearning = self.doLearnings[doLearning]
 
-		self.__run__()
+		# self.__run__()
 
 		return
+
+	@property
+	def out(self):
+		return self._out
 
 	@property
 	def numFiles(self):
@@ -84,10 +82,6 @@ class BibTeX_Merger(Core):
 	@property
 	def importDir(self):
 		return self._importDir
-	
-	@property
-	def killLevel(self):
-		return self._killLevel
 	
 	@property
 	def shallowDeepCompDiv(self):
@@ -112,38 +106,39 @@ class BibTeX_Merger(Core):
 	def __initExtensions__(self):
 		def bibRead(filename):
 			with open(filename, 'r') as f:
-				return bp.load(f, parser=self.parser)
+				try:
+					return bp.load(f, parser=self.parser)
+				except ValueError:
+					raise MergerError("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
+				
 		bibExt = Extension(ext=r'bib', reader=bibRead)
 
 		def csvRead(filename):
 			with open(filename) as f:
 				return [e for e in csv.reader(f)]
-		def csvWrite(filename, content):
-			with open(filename, 'wb') as f:
-				filecontent = csv.writer(f)
 
-				if type(content) != None:
-					if isinstance(content, list):
-						if len(content) > 0:
+		def csvWrite(filename, content):
+			if content != None:
+				if isinstance(content, list):
+					if len(content) > 0:
+						with open(filename, 'wb') as f:
+							filecontent = csv.writer(f)
 							if isinstance(content[0], list):
 								# Matrix, List of lists
 								filecontent.writerows(content)
 							else:
 								# Vector, List
 								filecontent.writerow(content)
-					return
-
-				raise ProgramError("CSV content has bad format, write failed")
+							return
+					raise MergerError("CSV content is empty, nothing to write")
+				raise MergerError("CSV content is not of matrix or vector format")
+			raise MergerError("CSV content is None, write failed")
+				
 		csvExt = Extension(ext=r'csv', reader=csvRead, writer=csvWrite)
 
 		return [bibExt, csvExt]
 
 	def __initConstants__(self):
-		self.logger = logging.getLogger(__name__)
-
-		self.killLevels = ['warning', 'error']
-		self.killLevels = dict((v,k) for k, v in enumerate(self.killLevels))
-
 		self.doLearnings = ['off', 'remakeData', 'remakeModel']
 		self.doLearnings = dict((v,k) for k, v in enumerate(self.doLearnings))
 
@@ -238,7 +233,6 @@ class BibTeX_Merger(Core):
 
 	def __run__(self):
 		self.Import()
-		# self.PreProcessor()
 		# self.Bagging()
 		# self.ShallowCompare()
 
@@ -289,51 +283,40 @@ class BibTeX_Merger(Core):
 			baseFilename = baseFilename.translate(self.mapToUnderscore)
 
 			# find a unique tag (this should rarely occur)
+
 			while baseFilename in self.tags:
 				baseFilename += "_"
 
-			# try to import the specified file and parse
-			try:
-				temp_db = self.__read__("{}/{}".format(self.importDir, filename))
+			# import the specified file and parse
+			temp_db = self.__read__("{}/{}".format(self.importDir, filename))
 
-				# append all ids in the entries dictionary with this file's unique tag
-				# s.t. all resulting ids are entirely unique w/r to all of the imported files
-				for i, e in enumerate(temp_db.entries):
-					if self.id not in e.keys():
-						raise MergerError("'{}' key not in this entry ({})".format(self.id, e.keys()))
+			# append all ids in the entries dictionary with this file's unique tag
+			# s.t. all resulting ids are entirely unique w/r to all of the imported files
+			for i, e in enumerate(temp_db.entries):
 
-					e[self.id] = "{}_{}".format(baseFilename, e[self.id])
+				# is virtually impossible since we are reading in via the bib extension module
+				# if self.id not in e.keys():
+				# 	raise MergerError("'{}' key not in this entry ({})".format(self.id, e.keys()))
 
-				# append all ids in the string dictionary with this file's unique tag
-				# s.t. all resulting ids are entirely unique w/r to all of the imported files
-				temp_strings = OrderedDict()
-				for k, v in temp_db.strings.iteritems():
-					newID = "{}_{}".format(baseFilename, k)
-					temp_strings[newID] = v
-				temp_db.strings = temp_strings
+				e[self.id] = "{}_{}".format(baseFilename, e[self.id])
 
-				self.tags += baseFilename
-			except ValueError:
-				raise MergerError("This file ({}) has formatting errors and could not be parsed. Skipping.".format(filename))
+			# append all ids in the string dictionary with this file's unique tag
+			# s.t. all resulting ids are entirely unique w/r to all of the imported files
+			# temp_strings = OrderedDict()
+			# for k, v in temp_db.strings.iteritems():
+			# 	newID = "{}_{}".format(baseFilename, k)
+			# 	temp_strings[newID] = v
+			# temp_db.strings = temp_strings
 
-			if not self.db:
-				self.db = temp_db
-			else:
-				# merge the following from the current temp_dic to the master self.db
-				self.db.entries += temp_db.entries
-				self.db.comments += temp_db.comments
-				self.db.preambles += temp_db.preambles
-				self.db.strings.update(temp_db.strings)
+			self.tags += [baseFilename]
+				
+			# merge the following from the current temp_dic to the master self.db
+			self.db.entries += temp_db.entries
+			# self.db.comments += temp_db.comments
+			# self.db.preambles += temp_db.preambles
+			# self.db.strings.update(temp_db.strings)
 
 			lengths.append(len(temp_db.entries))
-
-		return
-
-	def PreProcessor(self):
-		self.__title__("PreProcessor")
-
-		# Noisy First and/or Last Names
-		# Mistakenly Separated and/or Merged Name Units
 
 		return
 
@@ -343,60 +326,59 @@ class BibTeX_Merger(Core):
 		# Bagging based on initials
 		
 		# pull out author entires
-		self.db_fixed     = [e for e in self.db.entries if self.author     in e.keys() and not (e[self.author][-1][-1] == "others")]
-		self.db_etal      = [e for e in self.db.entries if self.author     in e.keys() and     (e[self.author][-1][-1] == "others")]
+		self.static_authors	= [e for e in self.db.entries if self.author     in e.keys() and not (e[self.author][-1][-1] == "others")]
+		self.etal_authors	= [e for e in self.db.entries if self.author     in e.keys() and     (e[self.author][-1][-1] == "others")]
 
 		# pull out non-author entries
-		self.db_nonauthor = [e for e in self.db.entries if self.author not in e.keys()]
+		self.no_authors		= [e for e in self.db.entries if self.author not in e.keys()]
 
-		print("db_fixed:      ", len(self.db_fixed))
-		print("db_etal:       ", len(self.db_etal))
-		print("db_nonauthor:  ", len(self.db_nonauthor))
+		self.__info__("""initial
+static_authors: {:010d}
+etal_authors:   {:010d}
+no_author:      {:010d} (these are ignored)
+\n""".format(
+	len(self.static_authors),
+	len(self.etal_authors),
+	len(self.no_authors)))
 
-		print("")
-		print("by none split costs")
-		# print("(num entries)", len(self.db_fixed) + len(self.db_etal))
-		bc = len(self.db_fixed) + len(self.db_etal)
-		print("best-case:", bc, ch.comb(bc, 2))
-		wc = bc
-		print("worst-case:", wc, ch.comb(wc, 2))
+		best_case	= len(self.static_authors) + len(self.etal_authors)
+		worst_case	= best_case
+		self.__info__("""by none split costs
+best_case:  {} {}
+worst_case: {} {}
+\n""".format(
+	best_case,	ch.comb(best_case,	2),
+	worst_case,	ch.comb(worst_case,	2)))
 
 		self.bagged = {}
-		for e in self.db_fixed:
-			try:
-				numAuthors = len(e[self.author])
+		for e in self.static_authors:
+			numAuthors = len(e[self.author])
 
-				if numAuthors not in self.bagged:
-					self.bagged[numAuthors] = [e]
-				else:
-					self.bagged[numAuthors].append(e)
-			except IndexError:
-				if self.killLevel:
-					print("ERROR: fixed num: skipping ({})".format(e[self.author]))
+			if numAuthors not in self.bagged:
+				self.bagged[numAuthors] = [e]
+			else:
+				self.bagged[numAuthors].append(e)
 
-		for e in self.db_etal:
-			try:
-				numAuthors = len(e[self.author])
+		for e in self.etal_authors:
+			numAuthors = len(e[self.author])
 
-				for k in self.bagged.keys():
-					if numAuthors <= k:
-						self.bagged[k].append(e)
+			for k in self.bagged.keys():
+				if numAuthors <= k:
+					self.bagged[k].append(e)
 
-				if numAuthors not in self.bagged:
-					self.bagged[numAuthors] = [e]
-				else:
-					self.bagged[numAuthors].append(e)
-			except IndexError:
-				if self.killLevel:
-					print("ERROR: etal num: skipping ({})".format(e[self.author]))
+			if numAuthors not in self.bagged:
+				self.bagged[numAuthors] = [e]
+			else:
+				self.bagged[numAuthors].append(e)
 
-		print("")
-		print("by # authors split costs")
-		# print("(len: num entries)", [[i, len(e)] for i, e in self.bagged.iteritems()])
-		bc = min([len(e) for i, e in self.bagged.iteritems()])
-		print("best-case:", bc, ch.comb(bc, 2))
-		wc = max([len(e) for i, e in self.bagged.iteritems()])
-		print("worst-case:", wc, ch.comb(wc, 2))
+		best_case	= min([len(e) for i, e in self.bagged.iteritems()])
+		worst_case	= max([len(e) for i, e in self.bagged.iteritems()])
+		self.__info__("""by # authors split costs
+best_case:  {} {}
+worst_case: {} {}
+\n""".format(
+	best_case,	ch.comb(best_case,	2),
+	worst_case,	ch.comb(worst_case,	2)))
 
 		for groupID, groupValues in dict(self.bagged).iteritems():
 			alphaBagged = {}
@@ -409,7 +391,7 @@ class BibTeX_Merger(Core):
 							letter += a[0][0].lower()
 							letter += a[1][0].lower()
 						# else:
-						# 	print("ignore 'others' author")
+						# 	self.out.write("ignore 'others' author")
 
 					added = False
 					for key in [key for key in alphaBagged.keys() if key.find(letter) == 0]:
@@ -423,17 +405,17 @@ class BibTeX_Merger(Core):
 							alphaBagged[letter].append(e)
 				except IndexError:
 					if self.killLevel:
-						print("ERROR: letter: skipping ({})".format(e[self.author]))
+						self.out.write("ERROR: letter: skipping ({})\n".format(e[self.author]))
 
 			self.bagged[groupID] = alphaBagged
 
-		print("")
-		print("by # authors and alpha key split costs")
-		# print("(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()])
+		self.out.write("\n")
+		self.out.write("by # authors and alpha key split costs\n")
+		# self.out.write("(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()])
 		bc = min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print("best-case:", bc, ch.comb(bc, 2))
+		self.out.write("best-case:  {} {}\n".format(bc, ch.comb(bc, 2)))
 		wc = max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		print("worst-case:", wc, ch.comb(wc, 2))
+		self.out.write("worst-case: {} {}\n".format(wc, ch.comb(wc, 2)))
 
 		return
 
@@ -514,7 +496,7 @@ class BibTeX_Merger(Core):
 
 
 							if (editDistance * phonDistance) >= self.shallowDeepCompDiv:
-								# print("COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2)
+								# self.out.write("COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2)
 								self.DeepCompare(entry1, entry2)
 								numComp[lenID][alphaID] += 1
 
@@ -522,7 +504,7 @@ class BibTeX_Merger(Core):
 							combDist[editDistance * phonDistance] = [authors1, authors2]
 						except UnicodeEncodeError:
 							if self.killLevel:
-								print("ERROR: skipping")
+								self.out.write("ERROR: skipping")
 
 		
 		# statistical output
@@ -532,26 +514,26 @@ class BibTeX_Merger(Core):
 		# for m in xrange(0, len(maxDistance)):
 		# 	maxD = maxDistance[m]
 
-		# 	print("combDist:", maxD)
-		# 	print("authors1:", combDist[maxD][0])
-		# 	print("authors2:", combDist[maxD][1])
-		# 	print("")
+		# 	self.out.write("combDist:", maxD)
+		# 	self.out.write("authors1:", combDist[maxD][0])
+		# 	self.out.write("authors2:", combDist[maxD][1])
+		# 	self.out.write("")
 
 		# 
-		print("")
-		print("deep compare done")
+		self.out.write("")
+		self.out.write("deep compare done")
 		bc = min([min([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		print("best-case:", bc)
+		self.out.write("best-case:", bc)
 		wc = max([max([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		print("worst-case:", wc)
+		self.out.write("worst-case:", wc)
 
-		print("")
-		print("predictions")
-		print("# duplicate matches:", sum(self.allPredictionsClass))
-		print("# of deep comparisons:", self.deepCompares)
-		print("# of shallow comparisons:", self.shallowCompares)
-		print("max # comparisons:", self.maxCompares)
-		print("")
+		self.out.write("")
+		self.out.write("predictions")
+		self.out.write("# duplicate matches:", sum(self.allPredictionsClass))
+		self.out.write("# of deep comparisons:", self.deepCompares)
+		self.out.write("# of shallow comparisons:", self.shallowCompares)
+		self.out.write("max # comparisons:", self.maxCompares)
+		self.out.write("")
 
 		return
 
@@ -589,13 +571,13 @@ class BibTeX_Merger(Core):
 					while not label:
 						os.system('clear')
 						# progress bar equivalent, print out which comparison we are on
-						print("{}/{}".format(self.shallowCompares, self.maxCompares))
+						self.out.write("{}/{}".format(self.shallowCompares, self.maxCompares))
 						# print out the summed percent error
-						print("prediction: {} (0.4 means low error, 1 means high error)".format(sv))
+						self.out.write("prediction: {} (0.4 means low error, 1 means high error)".format(sv))
 						# display all of the shared fields to manually compare
 						# CONSIDER: maybe also outputting non-shared fields is also useful???
 						for k in keysToComp:
-							print("e1: {}\ne2: {}\n".format(entry1[k], entry2[k]))
+							self.out.write("e1: {}\ne2: {}\n".format(entry1[k], entry2[k]))
 						label = raw_input("Are the entries the same? [y, n] ")
 
 						label = str(label).lower()
@@ -621,20 +603,20 @@ class BibTeX_Merger(Core):
 
 				if prediction > 0.5:
 					self.allPredictionsClass.append(1)
-					print("duplicates", entry1[self.id], entry2[self.id])
+					self.out.write("duplicates", entry1[self.id], entry2[self.id])
 				else:
 					self.allPredictionsClass.append(0)
 		except KeyError:
 			if self.killLevel:
-				print("ERROR: skipping")
+				self.out.write("ERROR: skipping")
 
 		return
 
 	def Learner(self):
 		self.__title__("Learner")
 
-		print("defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted)
-		print("# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted))
+		self.out.write("defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted)
+		self.out.write("# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted))
 
 		dataset = []
 		if self.doLearning == self.doLearnings['remakeData']:
@@ -669,7 +651,7 @@ class BibTeX_Merger(Core):
 		train_accuracy = float(numpy.mean(y_train_prediction == y_train) * 100)
 		test_accuracy  = float(numpy.mean(y_test_prediction  == y_test)  * 100)
 
-		#(print model.coef_)
+		#self.out.write(model.coef_)
 
 		# if self.learningModel == self.learningModels['fminunc']:
 		# 	os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
@@ -694,16 +676,16 @@ class MergerError(CoreError):
 	"""
 
 	def __init__(self, msg=None):
-		super(CoreError, self).__init__(msg)
+		super(MergerError, self).__init__(msg)
 
 if __name__ == '__main__':
 	try:
-		if len(argv) == 2:
-			s = str(argv[1])
+		if len(sys.argv) == 2:
+			s = str(sys.argv[1])
 			BibTeX_Merger(importDir=s)
-		elif len(argv) == 3:
-			s = str(argv[1])
-			n = int(argv[2])
+		elif len(sys.argv) == 3:
+			s = str(sys.argv[1])
+			n = int(sys.argv[2])
 			BibTeX_Merger(importDir=s, numFiles=n)
 		else:
 			BibTeX_Merger()

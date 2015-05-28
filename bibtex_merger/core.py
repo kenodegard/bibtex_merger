@@ -6,6 +6,9 @@ logger = logging.getLogger(__name__)
 __all__ = [	'Core', 'CoreError'	]
 
 class Core(object):
+	killLevels = ['warning', 'error']
+	killLevels = dict((v,k) for k, v in enumerate(killLevels))
+
 	"""The core program. Processes and deals with the base functionality
 	
 	Attributes:
@@ -14,7 +17,16 @@ class Core(object):
 				found for a filename is the one used.
 		prefFile -- The filename for the preferences file. Default: "pref.cfg"
 	"""
-	def __init__(self, ext, prefFile='pref.cfg'):
+	def __init__(self, ext, prefFile='pref.cfg', out=sys.stdout, killLevel='warning'):
+		if not callable(getattr(out, "write", None)):
+			raise ValueError("Core out attribute must be a file type (not {}). Default is sys.stdout".format(type(out)))
+		self._out = out
+
+		# Verbose level that optionally prints more debugging code
+		if not (isinstance(killLevel, str) and killLevel in self.killLevels):
+			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevels), type(killLevel), killLevel))
+		self._killLevel = self.killLevels[killLevel]
+
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]
 		elif isinstance(ext, list):
@@ -50,6 +62,14 @@ class Core(object):
 		return
 
 	@property
+	def killLevel(self):
+		return self._killLevel
+
+	@property
+	def out(self):
+		return self._out
+
+	@property
 	def extensionObjects(self):
 	    return self._extensionObjects
 
@@ -61,7 +81,15 @@ class Core(object):
 	def extensionPatterns(self):
 		return self._extensionPatters
 
-	def __title__(self, title, out=sys.stdout):
+	@property
+	def preferences(self):
+		return self._preferences
+
+	@property
+	def preferencesFile(self):
+		return self._preferencesFile
+
+	def __title__(self, title):
 		if not isinstance(title, str):
 			raise ValueError("Core.__title__'s title argument ({}) must be str".format(title))
 
@@ -76,13 +104,13 @@ class Core(object):
 		right = int(left + ((width - len(title)) % 2))
 		string = "\n" + ("#" * width) + "\n"
 		string += "#" + (" " * left) + title + (" " * right) + "#\n"
-		string += ("#" * width)
+		string += ("#" * width) + "\n"
 		
-		out.write(string)
+		self.out.write(string)
 		
 		return
 
-	def __subtitle__(self, title, out=sys.stdout):
+	def __subtitle__(self, title):
 		if not isinstance(title, str):
 			raise ValueError("Core.__subtitle__'s title argument ({}) must be str".format(title))
 
@@ -96,9 +124,9 @@ class Core(object):
 		left  = int(((width - len(title)) / 2) - 2)
 		right = int(left + ((width - len(title)) % 2))
 		string = "||" + (" " * left) + title + (" " * right) + "||\n"
-		string += ("=" * width)
+		string += ("=" * width) + "\n"
 
-		out.write(string)
+		self.out.write(string)
 		
 		return
 
@@ -108,11 +136,13 @@ class Core(object):
 			index   = indeces.index(True)
 
 			assert bool(re.search(self.extensionObjects[index].reextension, filename)) == True
-
-			return self.extensionObjects[index].read(filename=filename)
 		except ValueError:
 			# unsupported extension
 			raise CoreError("Attempted to read an unsupported file format ({})".format(filename))
+
+		# if an error is thrown in the reading process then that should be dealt with by
+		# the Extension module
+		return self.extensionObjects[index].read(filename=filename)
 
 	def __write__(self, filename, content):
 		try:
@@ -126,13 +156,26 @@ class Core(object):
 			# unsupported extension
 			raise CoreError("Attempted to write an unsupported file format ({})".format(filename))
 
-	@property
-	def preferences(self):
-		return self._preferences
+	def __info__(self, msg):
+		if not isinstance(msg, str):
+			raise ValueError("Core.__info__ msg attribute must be of str not {}".format(type(msg)))
 
-	@property
-	def preferencesFile(self):
-		return self._preferencesFile
+		self.out.write(msg + "\n")
+
+	def __warning__(self, exception):
+		if not isinstance(exception, Exception):
+			raise ValueError("Core.__warning__ exception attribute must be an instance of Exception not {}".format(type(exception)))
+
+		if self.killLevel == self.killLevels['warning']:
+			raise exception
+		else:
+			self.out.write("WARNING: {}: {}\n".format(type(exception).__name__, str(exception)))
+
+	def __error__(self, exception):
+		if not isinstance(exception, Exception):
+			raise ValueError("Core.__error__ exception attribute must be an instance of Exception not {}".format(type(exception)))
+
+		raise exception
 	
 	def __preferencesRead__(self):
 		if self.preferencesFile == None:
@@ -153,23 +196,6 @@ class Core(object):
 			self._preferences = self.__read__(self.preferencesFile)
 
 		return self.__write__(self.preferencesFile, self.preferences)
-
-	# 	# reading
-	# 	config = self.__read__(self.installDir, self.configFile)
-
-	# 	print(config)
-
-	# 	# writing
-	# 	config.add_section('Section1')
-	# 	config.set('Section1', 'an_int', '15')
-	# 	config.set('Section1', 'a_bool', 'true')
-	# 	config.set('Section1', 'a_float', '3.1415')
-	# 	config.set('Section1', 'baz', 'fun')
-	# 	config.set('Section1', 'bar', 'Python')
-	# 	config.set('Section1', 'foo', '%(bar)s is %(baz)s!')
-
-	# 	# Writing our configuration file to 'example.cfg'
-	# 	self.__write__(self.installDir, self.configFile, config)
 
 class CoreError(Exception):
 	"""Exception raised for Core object errors.
