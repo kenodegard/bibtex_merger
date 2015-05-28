@@ -350,29 +350,31 @@ worst_case: {} {}
 	best_case,	ch.comb(best_case,	2),
 	worst_case,	ch.comb(worst_case,	2)))
 
-		self.bagged = {}
+		self.bag = {}
+
+		# bag entries by number of authors
 		for e in self.static_authors:
 			numAuthors = len(e[self.author])
 
-			if numAuthors not in self.bagged:
-				self.bagged[numAuthors] = [e]
+			if numAuthors not in self.bag:
+				self.bag[numAuthors] = [e]
 			else:
-				self.bagged[numAuthors].append(e)
+				self.bag[numAuthors].append(e)
 
 		for e in self.etal_authors:
 			numAuthors = len(e[self.author])
 
-			for k in self.bagged.keys():
+			for k in self.bag.keys():
 				if numAuthors <= k:
-					self.bagged[k].append(e)
+					self.bag[k].append(e)
 
-			if numAuthors not in self.bagged:
-				self.bagged[numAuthors] = [e]
+			if numAuthors not in self.bag:
+				self.bag[numAuthors] = [e]
 			else:
-				self.bagged[numAuthors].append(e)
+				self.bag[numAuthors].append(e)
 
-		best_case	= min([len(e) for i, e in self.bagged.iteritems()])
-		worst_case	= max([len(e) for i, e in self.bagged.iteritems()])
+		best_case	= min([len(e) for i, e in self.bag.iteritems()])
+		worst_case	= max([len(e) for i, e in self.bag.iteritems()])
 		self.__info__("""by # authors split costs
 best_case:  {} {}
 worst_case: {} {}
@@ -380,43 +382,42 @@ worst_case: {} {}
 	best_case,	ch.comb(best_case,	2),
 	worst_case,	ch.comb(worst_case,	2)))
 
-		for groupID, groupValues in dict(self.bagged).iteritems():
-			alphaBagged = {}
+		# bag entries by alpha keys
+		for num_authors, entries in dict(self.bag).iteritems():
+			alpha_bag = {}
 
-			for e in groupValues:
-				try:
-					letter = ""
-					for a in e[self.author]:
-						if a[1] != "others":
-							letter += a[0][0].lower()
-							letter += a[1][0].lower()
-						# else:
-						# 	self.out.write("ignore 'others' author")
+			for e in entries:
+				# generate the alpha key for this entry
+				alpha_key = ""
+				for a in e[self.author]:
+					# alpha key includes initials of all authors EXCEPT "others"
+					if a[-1] != "others":
+						alpha_key += a[0][0].lower()
+						alpha_key += a[1][0].lower()
 
-					added = False
-					for key in [key for key in alphaBagged.keys() if key.find(letter) == 0]:
-						added = True
-						alphaBagged[key].append(e)
+				# add this entry to all other alpha keys in this alpha bag that has matching alpha keys
+				# this forces all non "others" alpha keys to only be added once
+				# all "others" alpha keys can be included multiple times
+				added = False
+				for key in [key for key in alpha_bag.keys() if key.find(alpha_key) == 0]:
+					added = True
+					alpha_bag[key].append(e)
 
-					if not added:
-						if letter not in alphaBagged:
-							alphaBagged[letter] = [e]
-						else:
-							alphaBagged[letter].append(e)
-				except IndexError:
-					if self.killLevel:
-						self.out.write("ERROR: letter: skipping ({})\n".format(e[self.author]))
+				# if a key was not added, this means this is the first instance of that key
+				if not added:
+					assert alpha_key not in alpha_bag
+					alpha_bag[alpha_key] = [e]
 
-			self.bagged[groupID] = alphaBagged
+			self.bag[num_authors] = alpha_bag
 
-		self.out.write("\n")
-		self.out.write("by # authors and alpha key split costs\n")
-		# self.out.write("(len: (alpha: num entries))", [[i, [[a, len(e)] for a, e in d.iteritems()]] for i, d in self.bagged.iteritems()])
-		bc = min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		self.out.write("best-case:  {} {}\n".format(bc, ch.comb(bc, 2)))
-		wc = max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bagged.iteritems()])
-		self.out.write("worst-case: {} {}\n".format(wc, ch.comb(wc, 2)))
-
+		best_case	= min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bag.iteritems()])
+		worst_case	= max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bag.iteritems()])
+		self.__info__("""by # authors and alpha key split costs
+best_case:  {} {}
+worst_case: {} {}
+\n""".format(
+	best_case,	ch.comb(best_case,	2),
+	worst_case,	ch.comb(worst_case,	2)))
 		return
 
 	def ShallowCompare(self):
@@ -435,9 +436,9 @@ worst_case: {} {}
 
 		self.shallowCompares = 0
 		self.deepCompares = 0
-		self.maxCompares = sum([sum([ch.comb(len(e), 2) for a, e in d.iteritems() if len(e) > 1]) for i, d in self.bagged.iteritems()])
+		self.maxCompares = sum([sum([ch.comb(len(e), 2) for a, e in d.iteritems() if len(e) > 1]) for i, d in self.bag.iteritems()])
 
-		for lenID, lenDic in self.bagged.iteritems():
+		for lenID, lenDic in self.bag.iteritems():
 			numComp[lenID] = {}
 			for alphaID, entries in lenDic.iteritems():
 				numComp[lenID][alphaID] = 0
