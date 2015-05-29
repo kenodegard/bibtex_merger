@@ -1,4 +1,11 @@
-import os, abc, sys, logging, re, ConfigParser
+import os, abc, sys, logging, re
+
+python2 = sys.version_info < (3, 0, 0)
+
+if python2:
+    import ConfigParser
+else:
+    import configparser as ConfigParser
 
 from bibtex_merger.extension import *
 

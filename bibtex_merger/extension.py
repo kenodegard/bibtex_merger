@@ -64,7 +64,6 @@ class Extension(object):
 			raise ExtensionError(self.extension, ExtensionError.READ)
 
 		if not (re.search(self.reextension, filename) or self.extension == filename):
-			print self.extension, filename
 			raise ExtensionError(self.extension, ExtensionError.GENERAL)
 
 		return self.reader(filename)

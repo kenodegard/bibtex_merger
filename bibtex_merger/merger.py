@@ -15,7 +15,6 @@ from sklearn.cross_validation import train_test_split
 import re, csv, os, threading, logging, sys
 from datetime import *
 from collections import OrderedDict
-import ConfigParser
 
 from bibtex_merger.core import *
 from bibtex_merger.extension import *
@@ -233,7 +232,7 @@ class BibTeX_Merger(Core):
 
 	def __run__(self):
 		self.Import()
-		# self.Bagging()
+		self.Bagging()
 		# self.ShallowCompare()
 
 		# if self.doLearning != self.doLearnings['off']:
