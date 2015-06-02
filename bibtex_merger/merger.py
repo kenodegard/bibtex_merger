@@ -233,7 +233,7 @@ class BibTeX_Merger(Core):
 	def __run__(self):
 		self.Import()
 		self.Bagging()
-		# self.ShallowCompare()
+		self.ShallowCompare()
 
 		# if self.doLearning != self.doLearnings['off']:
 		# 	self.Learner()
@@ -503,37 +503,28 @@ worst_case: {} {}
 
 							combDist[editDistance * phonDistance] = [authors1, authors2]
 						except UnicodeEncodeError:
-							if self.killLevel:
-								self.out.write("ERROR: skipping")
+							self.__warn__(MergerError("unable to properly analyze these two entries ({}, {})".format(entry1[self.id], entry2[self.id])))
+							# if self.killLevel:
+							# 	self.out.write("ERROR: skipping")
 
+		best_case = min([min([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
+		worst_case = max([max([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
+		self.__info__("""shallow & deep compare complete
+best_case:  {}
+worst_case: {}""".format(
+	best_case,
+	worst_case))
 		
-		# statistical output
-		# maxDistance = combDist.keys()
-		# maxDistance.sort()
 
-		# for m in xrange(0, len(maxDistance)):
-		# 	maxD = maxDistance[m]
-
-		# 	self.out.write("combDist:", maxD)
-		# 	self.out.write("authors1:", combDist[maxD][0])
-		# 	self.out.write("authors2:", combDist[maxD][1])
-		# 	self.out.write("")
-
-		# 
-		self.out.write("")
-		self.out.write("deep compare done")
-		bc = min([min([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		self.out.write("best-case:", bc)
-		wc = max([max([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
-		self.out.write("worst-case:", wc)
-
-		self.out.write("")
-		self.out.write("predictions")
-		self.out.write("# duplicate matches:", sum(self.allPredictionsClass))
-		self.out.write("# of deep comparisons:", self.deepCompares)
-		self.out.write("# of shallow comparisons:", self.shallowCompares)
-		self.out.write("max # comparisons:", self.maxCompares)
-		self.out.write("")
+		self.__info__("""predictions
+# duplicate matches:      {}
+# of deep comparisons:    {}
+# of shallow comparisons: {}
+max # comparisons:        {}""".format(
+	sum(self.allPredictionsClass),
+	self.deepCompares,
+	self.shallowCompares,
+	self.maxCompares))
 
 		return
 
@@ -661,11 +652,6 @@ worst_case: {} {}
 		# 		"\"cd('glmfit');optimize_glmfit();exit();\""))
 		# else:
 		# 	raise ValueError("ERROR: bad model specified")
-		return
-
-	def PostProcessor(self):
-		self.__title__("PostProcessor")
-		
 		return
 
 class MergerError(CoreError):

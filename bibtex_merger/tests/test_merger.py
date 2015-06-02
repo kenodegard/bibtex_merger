@@ -10,7 +10,7 @@ else:
 from bibtex_merger.merger import *
 from bibtex_merger.core import CoreError
 
-class TestBibTeX_Merger(unittest.TestCase):
+class test_merger(unittest.TestCase):
 
 	###########
 	# Helpers
@@ -297,13 +297,14 @@ volume = {MMXV,
 		m.Import()
 		m.Bagging()
 
+	###########
+	# ShallowCompare
+	###########
 
+	def test_ShallowCompare(self):
+		m = BibTeX_Merger(importDir=self.dataDir)
 
-from bibtex_merger.merger import *
-from bibtex_merger.core import CoreError
-m = BibTeX_Merger(importDir="bibtex_merger/tests/data")
-m.Import()
-m.Bagging()
-
-
+		m.Import()
+		m.Bagging()
+		m.ShallowCompare()
 

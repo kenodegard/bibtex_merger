@@ -10,7 +10,7 @@ else:
 from bibtex_merger.core import *
 from bibtex_merger.extension import *
 
-class TestCore(unittest.TestCase):
+class test_core(unittest.TestCase):
 
 	###########
 	# __init__
@@ -386,7 +386,7 @@ class TestCore(unittest.TestCase):
 
 		self.assertRaises(ValueError, c.__error__, 12345)
 		
-class TestCoreError(unittest.TestCase):
+class test_core_error(unittest.TestCase):
 
 	###########
 	# Helpers

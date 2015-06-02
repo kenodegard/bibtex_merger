@@ -2,7 +2,7 @@ import unittest
 
 from bibtex_merger.extension import *
 
-class TestExtension(unittest.TestCase):
+class test_extension(unittest.TestCase):
 
 	###########
 	# Helpers
@@ -127,7 +127,7 @@ class TestExtension(unittest.TestCase):
 	def test_Extension_extension_change(self):
 		self.assertRaises(AttributeError, self.extensionAttemptWriterChange)
 
-class TestExtensionError(unittest.TestCase):
+class test_extension_error(unittest.TestCase):
 
 	###########
 	# Helpers
