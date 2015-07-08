@@ -13,6 +13,30 @@ logger = logging.getLogger(__name__)
 __all__ = [	'Core', 'CoreError'	]
 
 class Core(object):
+	DEBUG		= logging.DEBUG
+	INFO		= logging.INFO
+	WANRING		= logging.WANRING
+	ERROR		= logging.ERROR
+	CRITICAL	= logging.CRITICAL
+
+	_SOFT_LOG_LIST_	= [DEBUG, INFO]
+	_HARD_LOG_LIST_	= [WARNING, ERROR, CRITICAL]
+	_ALL_LOG_LIST_	= _SOFT_LOG_LVLS + _HARD_LOG_LVLS
+
+	_LOG_DICT_TO_INT_	= dict((lvl, getattr(Core, lvl)) for lvl in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+	_LOG_DICT_TO_STR_	= dict((getattr(Core, lvl), lvl) for lvl in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+
+	def __LOG_LVL_TO_INT__(self, lvl):
+		try:
+			return self._LOG_DICT_TO_INT_[lvl]
+		except KeyError:
+			return None
+	def __LOG_LVL_TO_STR__(self, lvl):
+		try:
+			return self._LOG_DICT_TO_STR_[lvl]
+		except KeyError:
+			return None
+
 	killLevels = ['warning', 'error']
 	killLevels = dict((v,k) for k, v in enumerate(killLevels))
 
@@ -24,15 +48,20 @@ class Core(object):
 				found for a filename is the one used.
 		prefFile -- The filename for the preferences file. Default: "pref.cfg"
 	"""
-	def __init__(self, ext, prefFile='pref.cfg', out=sys.stdout, killLevel='warning'):
+	def __init__(self, ext, prefFile='pref.cfg', out=OUT, loglvl=LOG_LVL, killlvl=KILL_LVL):
 		if not callable(getattr(out, "write", None)):
-			raise ValueError("Core out attribute must be a file type (not {}). Default is sys.stdout".format(type(out)))
-		self._out = out
+			self.critical("Core <out> attribute must be a writable type (dflt: sys.stdout)")
+		self._OUT = out
 
 		# Verbose level that optionally prints more debugging code
-		if not (isinstance(killLevel, str) and killLevel in self.killLevels):
-			raise ValueError("BibTeX_Merger killLevel argument must be {} not ({} -> {})".format("|".join(self.killLevels), type(killLevel), killLevel))
-		self._killLevel = self.killLevels[killLevel]
+		if kill_lvl not in _HARD_LOG_LIST_:
+			self.critical("Core <kill_lvl> argument must be one of the accepted hard logging levels (dflt: WARNING)")
+		self._KILL_LVL = kill_lvl
+
+		if log_lvl not in _ALL_LOG_LIST_:
+			self.critical("Core <log_lvl> argument must be one of the accepted logging levels (dflt: INFO)")
+		self._LOG_LVL = log_lvl
+
 
 		if isinstance(ext, Extension):
 			self._extensionObjects	= [ext]
@@ -69,12 +98,28 @@ class Core(object):
 		return
 
 	@property
-	def killLevel(self):
-		return self._killLevel
+	def OUT(self):
+		try:
+			return self._OUT
+		except AttributeError:
+			self._OUT = sys.stdout
+			return self._OUT
 
 	@property
-	def out(self):
-		return self._out
+	def LOG_LVL(self):
+		try:
+			return self._LOG_LVL
+		except AttributeError:
+			self._LOG_LVL = Core.INFO
+			return self._LOG_LVL
+
+	@property
+	def KILL_LVL(self):
+		try:
+			return self._KILL_LVL
+		except AttributeError:
+			self._KILL_LVL = Core.WARNING
+			return self._KILL_LVL
 
 	@property
 	def extensionObjects(self):
@@ -96,46 +141,74 @@ class Core(object):
 	def preferencesFile(self):
 		return self._preferencesFile
 
-	def __title__(self, title):
-		if not isinstance(title, str):
-			raise ValueError("Core.__title__'s title argument ({}) must be str".format(title))
+	def __title__(self, title, sym="#"):
+		"""
+		Pretty title maker
+		"""
+		title	= str(title).upper()
+		sym		= str(sym).upper()
 
-		width = 80
-		maxTextWidth = width - 4
-		title = title.upper()
-		
-		if len(title) > maxTextWidth:
-			title = title[:maxTextWidth]
-		
-		left  = int(((width - len(title)) / 2) - 1)
-		right = int(left + ((width - len(title)) % 2))
-		string = "\n" + ("#" * width) + "\n"
-		string += "#" + (" " * left) + title + (" " * right) + "#\n"
-		string += ("#" * width) + "\n"
-		
-		self.out.write(string)
-		
-		return
+		if len(sym) == 0:
+			self.info("Core.__title__: empty sym provided is reverting to the default")
+			sym = "#"
+		if len(sym) > 1:
+			self.info("Core.__title__: sym is being truncated to a single character")
+			sym = sym[0]
 
-	def __subtitle__(self, title):
-		if not isinstance(title, str):
-			raise ValueError("Core.__subtitle__'s title argument ({}) must be str".format(title))
+		width, height = shutil.get_terminal_size()
+		border_width = 1
+		whitespace_width = 2
 
-		width = 80
-		maxTextWidth = width - 6
-		title = title.upper()
+		maxtextspace = width - ((border_width + whitespace_width) * 2)
+		whitespace = width - len(title) - (border_width * 2)
 
-		if len(title) > maxTextWidth:
-			title = title[:maxTextWidth]
+		if whitespace < (whitespace_width * 2):
+			self.info("Core.__title__: title is too long, trimming")
+			whitespace = (whitespace_width * 2)
 
-		left  = int(((width - len(title)) / 2) - 2)
-		right = int(left + ((width - len(title)) % 2))
-		string = "||" + (" " * left) + title + (" " * right) + "||\n"
-		string += ("=" * width) + "\n"
+			title = title[:maxtextspace - 3] + "..."
 
-		self.out.write(string)
-		
-		return
+		# get half of the whitespace and round down (truncate to remove decimal)
+		left_whitespace		= int(whitespace / 2)
+		# collect remaining whitespace on the right side
+		right_whitespace	= whitespace - lspace
+
+		if sym in ["#", "!", "?"]:
+			text  = (sym * width) + "\n"
+			text += sym + (" " * lspace) + title + (" " * rspace) + sym + "\n"
+			text += (sym * width) + "\n"
+		else:
+			left_whitespace = left_symspace
+			right_whitespace = right_symspace
+			text =  (sym * left_symspace) + " " + title + " " + (sym * right_symspace) "\n"
+
+		return text
+
+	def __subtitle__(self, subtitle):
+		"""
+		Pretty subtitle maker
+		"""
+		return self.__title__(subtitle, sym="!")
+
+	def __text__(self, text):
+		"""
+		Pretty text maker
+		"""
+		if isinstance(text, list):
+			return "\n".join(self.__text__(line) for line in text) + "\n"
+		else:
+			width, height = shutil.get_terminal_size()
+
+			return textwrap.indent(textwrap.fill(text=text, width=width - 4), " ")
+
+	def title(self, title):
+		self.OUT.write(self.__title__(title))
+
+	def subtitle(self, subtitle):
+		self.OUT.write(self.__subtitle__(subtitle))
+
+	def text(self, text):
+		self.OUT.write(self.__text__(text))
 
 	def __read__(self, filename):
 		try:
@@ -163,14 +236,28 @@ class Core(object):
 			# unsupported extension
 			raise CoreError("Attempted to write an unsupported file format ({})".format(filename))
 
-	def __info__(self, msg):
-		if not isinstance(msg, str):
-			raise ValueError("Core.__info__ msg attribute must be of str not {}".format(type(msg)))
+	def __log_kill__(self, lvl, msgexpt):
+		if lvl in self._SOFT_LOG_LIST_:
+			if not isinstance(msgexpt, str):
+				self.critical("Core.__log_kill__: msgexpt attribute must be of str for lvl {}".format(self.__LOG_LVL_TO_STR__(lvl)))
 
-		self.out.write(msg + "\n")
+			self.text(msgexpt)
+		elif lvl in self._HARD_LOG_LIST_:
+			if not isinstance(msgexpt, Exception):
+				self.critical("Core.__log_kill__: msgext attribute must be an Exception for lvl {}".format(self.__LOG_LVL_TO_STR__(lvl)))
 
-	def __warning__(self, exception):
-		if not isinstance(exception, Exception):
+			if		self.LOG_LVL == Core.DEBUG:		self.LOGGER.debug(msgexpt)
+			elif	self.LOG_LVL == Core.INFO:		self.LOGGER.info(msgexpt)
+			elif	self.LOG_LVL == Core.WARNING:	self.LOGGER.warning(msgexpt)
+			elif	self.LOG_LVL == Core.ERROR:		self.LOGGER.error(msgexpt)
+			elif	self.LOG_LVL == Core.CRITICAL:	self.LOGGER.critical(msgexpt)
+
+			if self.KILL_LVL <= lvl:				raise msgexpt
+		else:
+			# bad
+
+
+		
 			raise ValueError("Core.__warning__ exception attribute must be an instance of Exception not {}".format(type(exception)))
 
 		if self.killLevel == self.killLevels['warning']:
@@ -178,11 +265,23 @@ class Core(object):
 		else:
 			self.out.write("WARNING: {}: {}\n".format(type(exception).__name__, str(exception)))
 
-	def __error__(self, exception):
+	def debug(self, msg):
+		self.__log_kill__(self.DEBUG, msg)
+		
+
+	def info(self, msg):
+		self.__log_kill__(self.INFO, msg)
+
+	def warning(self, expt):
+		self.__log_kill__(self.WARNING, expt)
+
+	def error(self, expt):
 		if not isinstance(exception, Exception):
 			raise ValueError("Core.__error__ exception attribute must be an instance of Exception not {}".format(type(exception)))
 
 		raise exception
+
+	def critical(self, expt):
 	
 	def __preferencesRead__(self):
 		if self.preferencesFile == None:

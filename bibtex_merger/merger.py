@@ -66,13 +66,13 @@ class BibTeX_Merger(Core):
 			raise ValueError("BibTeX_Merger doLearning argument must be {} not ({} -> {})".format("|".join(self.doLearnings), type(doLearning), doLearning))
 		self._doLearning = self.doLearnings[doLearning]
 
-		# self.__run__()
+		self.__run__()
 
 		return
 
 	@property
-	def out(self):
-		return self._out
+	def OUT(self):
+		return self._OUT
 
 	@property
 	def numFiles(self):
@@ -332,10 +332,10 @@ class BibTeX_Merger(Core):
 		self.no_authors		= [e for e in self.db.entries if self.author not in e.keys()]
 
 		self.__info__("""initial
-static_authors: {:010d}
-etal_authors:   {:010d}
-no_author:      {:010d} (these are ignored)
-\n""".format(
+static_authors: {:10d}
+etal_authors:   {:10d}
+no_author:      {:10d} (these are ignored)
+""".format(
 	len(self.static_authors),
 	len(self.etal_authors),
 	len(self.no_authors)))
@@ -343,11 +343,12 @@ no_author:      {:010d} (these are ignored)
 		best_case	= len(self.static_authors) + len(self.etal_authors)
 		worst_case	= best_case
 		self.__info__("""by none split costs
-best_case:  {} {}
-worst_case: {} {}
-\n""".format(
-	best_case,	ch.comb(best_case,	2),
-	worst_case,	ch.comb(worst_case,	2)))
+           |  # entries | # comparisons
+best_case  | {:10d} | {:10d}
+worst_case | {:10d} | {:10d}
+""".format(
+	best_case,	int(ch.comb(best_case,	2)),
+	worst_case,	int(ch.comb(worst_case,	2))))
 
 		self.bag = {}
 
@@ -375,11 +376,12 @@ worst_case: {} {}
 		best_case	= min([len(e) for i, e in self.bag.iteritems()])
 		worst_case	= max([len(e) for i, e in self.bag.iteritems()])
 		self.__info__("""by # authors split costs
-best_case:  {} {}
-worst_case: {} {}
-\n""".format(
-	best_case,	ch.comb(best_case,	2),
-	worst_case,	ch.comb(worst_case,	2)))
+           |  # entries | # comparisons
+best_case  | {:10d} | {:10d}
+worst_case | {:10d} | {:10d}
+""".format(
+	best_case,	int(ch.comb(best_case,	2)),
+	worst_case,	int(ch.comb(worst_case,	2))))
 
 		# bag entries by alpha keys
 		for num_authors, entries in dict(self.bag).iteritems():
@@ -412,11 +414,12 @@ worst_case: {} {}
 		best_case	= min([min([len(e) for a, e in d.iteritems()]) for i, d in self.bag.iteritems()])
 		worst_case	= max([max([len(e) for a, e in d.iteritems()]) for i, d in self.bag.iteritems()])
 		self.__info__("""by # authors and alpha key split costs
-best_case:  {} {}
-worst_case: {} {}
-\n""".format(
-	best_case,	ch.comb(best_case,	2),
-	worst_case,	ch.comb(worst_case,	2)))
+           |  # entries | # comparisons
+best_case  | {:10d} | {:10d}
+worst_case | {:10d} | {:10d}
+""".format(
+	best_case,	int(ch.comb(best_case,	2)),
+	worst_case,	int(ch.comb(worst_case,	2))))
 		return
 
 	def ShallowCompare(self):
@@ -496,7 +499,7 @@ worst_case: {} {}
 
 
 							if (editDistance * phonDistance) >= self.shallowDeepCompDiv:
-								# self.out.write("COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2)
+								# self.OUT.write("COMPARE", editDistance, phonDistance, editDistance * phonDistance, authors1, authors2)
 								self.DeepCompare(entry1, entry2)
 								numComp[lenID][alphaID] += 1
 
@@ -505,13 +508,15 @@ worst_case: {} {}
 						except UnicodeEncodeError:
 							self.__warn__(MergerError("unable to properly analyze these two entries ({}, {})".format(entry1[self.id], entry2[self.id])))
 							# if self.killLevel:
-							# 	self.out.write("ERROR: skipping")
+							# 	self.OUT.write("ERROR: skipping")
 
 		best_case = min([min([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
 		worst_case = max([max([n for a, n in d.iteritems()]) for l, d in numComp.iteritems()])
 		self.__info__("""shallow & deep compare complete
-best_case:  {}
-worst_case: {}""".format(
+           |  # entries
+best_case  | {:10d}
+worst_case | {:10d}
+""".format(
 	best_case,
 	worst_case))
 		
@@ -520,7 +525,8 @@ worst_case: {}""".format(
 # duplicate matches:      {}
 # of deep comparisons:    {}
 # of shallow comparisons: {}
-max # comparisons:        {}""".format(
+max # comparisons:        {}
+""".format(
 	sum(self.allPredictionsClass),
 	self.deepCompares,
 	self.shallowCompares,
@@ -562,13 +568,13 @@ max # comparisons:        {}""".format(
 					while not label:
 						os.system('clear')
 						# progress bar equivalent, print out which comparison we are on
-						self.out.write("{}/{}".format(self.shallowCompares, self.maxCompares))
+						self.OUT.write("{}/{}".format(self.shallowCompares, self.maxCompares))
 						# print out the summed percent error
-						self.out.write("prediction: {} (0.4 means low error, 1 means high error)".format(sv))
+						self.OUT.write("prediction: {} (0.4 means low error, 1 means high error)".format(sv))
 						# display all of the shared fields to manually compare
 						# CONSIDER: maybe also outputting non-shared fields is also useful???
 						for k in keysToComp:
-							self.out.write("e1: {}\ne2: {}\n".format(entry1[k], entry2[k]))
+							self.OUT.write("e1: {}\ne2: {}\n".format(entry1[k], entry2[k]))
 						label = raw_input("Are the entries the same? [y, n] ")
 
 						label = str(label).lower()
@@ -594,20 +600,20 @@ max # comparisons:        {}""".format(
 
 				if prediction > 0.5:
 					self.allPredictionsClass.append(1)
-					self.out.write("duplicates", entry1[self.id], entry2[self.id])
+					self.OUT.write("duplicates", entry1[self.id], entry2[self.id])
 				else:
 					self.allPredictionsClass.append(0)
 		except KeyError:
 			if self.killLevel:
-				self.out.write("ERROR: skipping")
+				self.OUT.write("ERROR: skipping")
 
 		return
 
 	def Learner(self):
 		self.__title__("Learner")
 
-		self.out.write("defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted)
-		self.out.write("# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted))
+		self.OUT.write("defaultKeysToDeepCompSorted:", self.defaultKeysToDeepCompSorted)
+		self.OUT.write("# defaultKeysToDeepCompSorted:", len(self.defaultKeysToDeepCompSorted))
 
 		dataset = []
 		if self.doLearning == self.doLearnings['remakeData']:
@@ -642,7 +648,7 @@ max # comparisons:        {}""".format(
 		train_accuracy = float(numpy.mean(y_train_prediction == y_train) * 100)
 		test_accuracy  = float(numpy.mean(y_test_prediction  == y_test)  * 100)
 
-		#self.out.write(model.coef_)
+		#self.OUT.write(model.coef_)
 
 		# if self.learningModel == self.learningModels['fminunc']:
 		# 	os.system("matlab -nodesktop -nodisplay -nosplash -r {}".format(
@@ -665,19 +671,19 @@ class MergerError(CoreError):
 		super(MergerError, self).__init__(msg)
 
 if __name__ == '__main__':
-	try:
-		if len(sys.argv) == 2:
-			s = str(sys.argv[1])
-			BibTeX_Merger(importDir=s)
-		elif len(sys.argv) == 3:
-			s = str(sys.argv[1])
-			n = int(sys.argv[2])
-			BibTeX_Merger(importDir=s, numFiles=n)
-		else:
-			BibTeX_Merger()
-	except UserError:
-		PrintException("UserError")
-	except ProgramError:
-		PrintException("ProgramError")
-	except BibTeXParserError:
-		PrintException("BibTeXParserError")
+	# try:
+	if len(sys.argv) == 2:
+		s = str(sys.argv[1])
+		BibTeX_Merger(importDir=s)
+	elif len(sys.argv) == 3:
+		s = str(sys.argv[1])
+		n = int(sys.argv[2])
+		BibTeX_Merger(importDir=s, numFiles=n)
+	else:
+		BibTeX_Merger()
+	# except UserError:
+	# 	PrintException("UserError")
+	# except ProgramError:
+	# 	PrintException("ProgramError")
+	# except BibTeXParserError:
+	# 	PrintException("BibTeXParserError")
