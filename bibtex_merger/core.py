@@ -180,7 +180,7 @@ class Core(object):
 		else:
 			left_whitespace = left_symspace
 			right_whitespace = right_symspace
-			text =  (sym * left_symspace) + " " + title + " " + (sym * right_symspace) "\n"
+			text =  (sym * left_symspace) + " " + title + " " + (sym * right_symspace) + "\n"
 
 		return text
 
@@ -237,33 +237,36 @@ class Core(object):
 			raise CoreError("Attempted to write an unsupported file format ({})".format(filename))
 
 	def __log_kill__(self, lvl, msgexpt):
-		if lvl in self._SOFT_LOG_LIST_:
-			if not isinstance(msgexpt, str):
-				self.critical("Core.__log_kill__: msgexpt attribute must be of str for lvl {}".format(self.__LOG_LVL_TO_STR__(lvl)))
-
-			self.text(msgexpt)
-		elif lvl in self._HARD_LOG_LIST_:
-			if not isinstance(msgexpt, Exception):
-				self.critical("Core.__log_kill__: msgext attribute must be an Exception for lvl {}".format(self.__LOG_LVL_TO_STR__(lvl)))
-
-			if		self.LOG_LVL == Core.DEBUG:		self.LOGGER.debug(msgexpt)
-			elif	self.LOG_LVL == Core.INFO:		self.LOGGER.info(msgexpt)
-			elif	self.LOG_LVL == Core.WARNING:	self.LOGGER.warning(msgexpt)
-			elif	self.LOG_LVL == Core.ERROR:		self.LOGGER.error(msgexpt)
-			elif	self.LOG_LVL == Core.CRITICAL:	self.LOGGER.critical(msgexpt)
-
-			if self.KILL_LVL <= lvl:				raise msgexpt
+		if lvl in self.HARD_LOG_LVLS:
+			if isinstance(msgexpt, Exception):
+				text = "({}) {}".format(msgexpt.__class__.__name__, str(msgexpt))
+			else:
+				self.critical(ValueError("Core.__log_kill__ msgexpt must be an Exception for lvl {}".format(self._LOG_DICT_TO_STR_[lvl])))
+		elif lvl in self.SOFT_LOG_LVLS:
+			if isinstance(msgexpt, str) or isinstance(expt, list):
+				text = self.__text__(msgexpt)
+			else:
+				self.critical(ValueError("Core.__log_kill__ msgexpt must be a str/list for lvl {}".format(self._LOG_DICT_TO_STR_[lvl])))
 		else:
-			# bad
+			self.critical(ValueError("Core.__log_kill__ only accepts the following lvls: {}".format(", ".join(self._LOG_DICT_TO_STR_[l] for l in self._ALL_LOG_LIST_))))
 
+		try:
+			if lvl == self.DEBUG:
+				self.logger.debug(text)
+			elif lvl == self.INFO:
+				self.logger.info(text)
+			elif lvl == self.WARNING:
+				self.logger.warning(text)
+			elif lvl == self.ERROR:
+				self.logger.error(text)
+			elif lvl == self.CRITICAL:
+				self.logger.critical(text)
+		except AttributeError:
+			# logger hasn't been initialized yet
+			pass
 
-		
-			raise ValueError("Core.__warning__ exception attribute must be an instance of Exception not {}".format(type(exception)))
-
-		if self.killLevel == self.killLevels['warning']:
-			raise exception
-		else:
-			self.out.write("WARNING: {}: {}\n".format(type(exception).__name__, str(exception)))
+		if lvl >= self.KILL_LVL:
+			raise expt
 
 	def debug(self, msg):
 		self.__log_kill__(self.DEBUG, msg)
@@ -276,12 +279,10 @@ class Core(object):
 		self.__log_kill__(self.WARNING, expt)
 
 	def error(self, expt):
-		if not isinstance(exception, Exception):
-			raise ValueError("Core.__error__ exception attribute must be an instance of Exception not {}".format(type(exception)))
-
-		raise exception
+		self.__log_kill__(self.ERROR, expt)
 
 	def critical(self, expt):
+		self.__log_kill__(self.CRITICAL, expt)
 	
 	def __preferencesRead__(self):
 		if self.preferencesFile == None:
